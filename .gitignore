@@ -1,0 +1,30 @@
+# Dependências
+node_modules/
+backend/node_modules/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Ambiente
+.env
+backend/.env
+
+# NetBeans
+build/
+nbproject/private/
+dist/
+nbbuild/
+
+# Ficheiros de base de dados
+*.db
+*.sqlite
+
+# Ficheiros temporários
+*.tmp
+*.bak
+.DS_Store
+Thumbs.db
+
+# Ficheiros Java compilados
+*.class
