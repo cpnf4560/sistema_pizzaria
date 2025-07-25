@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Pizzaria Java - Encomenda</title>
+    <meta name="viewport" content="width=800">
+    <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4952/4952486.png">
+    <style>
+        body { font-family: Arial, sans-serif; background: #ebffe6; margin: 0; }
+        main { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 0 10px #ace3b2; padding: 24px; }
+        .hidden { display: none; }
+        h2 { color: #00994d; margin-top: 0; }
+        .form-row { display: flex; align-items: center; margin-bottom: 16px; }
+        .form-row label { flex: 0 0 120px; font-weight: bold; }
+        .form-row input, .form-row textarea { flex: 1; padding: 6px; border: 1px solid #b7d6b7; border-radius: 4px; }
+        .form-row textarea { resize: vertical; }
+        .btn { padding: 10px 32px; border: none; border-radius: 5px; background: #00994d; color: #fff; font-weight: bold; cursor: pointer; font-size: 16px; }
+        .btn[disabled] { background: #ccc; }
+        #menu { display: flex; gap: 24px; }
+        #pizzas { flex: 2; background: #f0fff0; border-radius: 8px; padding: 16px; }
+        #carrinho { flex: 1; background: #e6ffe6; border-radius: 8px; padding: 16px; min-width: 220px; }
+        .pizza-item { border-bottom: 1px solid #cbeacb; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
+        .pizza-nome { font-size: 18px; font-weight: bold; color: #00994d; }
+        .pizza-desc { font-size: 13px; color: #333; }
+        .pizza-precos { display: flex; gap: 7px; }
+        .pizza-btn { background: #d35400; color: #fff; border: none; border-radius: 3px; padding: 4px 10px; cursor: pointer; }
+        #itens-carrinho { font-size: 15px; margin-bottom: 8px; }
+        #total-carrinho { font-weight: bold; margin-top: 12px; }
+        #opcoes { margin-top: 18px; background: #e6ffe6; border-radius: 8px; padding: 12px; }
+        #finalizar { margin-top: 16px; }
+        .radio-group { margin-bottom: 8px; }
+        .radio-group label { margin-right: 24px; }
+        .spinner { width: 70px; padding: 4px 7px; font-size: 15px; border-radius: 4px; border: 1px solid #b7d6b7; }
+        @media (max-width: 900px) {
+            main { padding: 6px; }
+            #menu { flex-direction: column; }
+        }
+    </style>
+</head>
+<body>
+<main>
+    <!-- Página Cliente/Login -->
+    <div id="pagina-cliente">
+        <h2>Dados do Cliente</h2>
+        <form id="form-cliente">
+            <div class="form-row">
+                <label for="nome">Nome:</label>
+                <input id="nome" name="nome" type="text" required autocomplete="name">
+            </div>
+            <div class="form-row">
+                <label for="morada">Morada:</label>
+                <input id="morada" name="morada" type="text" required autocomplete="address">
+            </div>
+            <div class="form-row">
+                <label for="telefone">Telefone:</label>
+                <input id="telefone" name="telefone" type="text" required maxlength="14" value="+351 " autocomplete="tel" pattern="^\+351 \d{9}$">
+            </div>
+            <div class="form-row">
+                <label for="email">Email:</label>
+                <input id="email" name="email" type="email" required autocomplete="email">
+            </div>
+            <button type="submit" class="btn">Avançar para o Menu</button>
+        </form>
+    </div>
+
+    <!-- Página Menu -->
+    <div id="pagina-menu" class="hidden">
+        <h2>Menu de Pizzas</h2>
+        <div id="menu">
+            <!-- Lista de Pizzas -->
+            <div id="pizzas">
+                <!-- JS: Preenche a lista de pizzas aqui -->
+            </div>
+            <!-- Carrinho -->
+            <div id="carrinho">
+                <h3>Carrinho</h3>
+                <div id="itens-carrinho"></div>
+                <div id="total-carrinho">Total: 0.00 € (IVA incl.)</div>
+            </div>
+        </div>
+        <!-- Opções de Encomenda -->
+        <form id="form-encomenda">
+            <div id="opcoes">
+                <div class="radio-group">
+                    <label><input type="radio" name="entrega" value="recolha" checked> Recolha no restaurante</label>
+                    <label><input type="radio" name="entrega" value="domicilio"> Entrega ao domicílio (+3,90€)</label>
+                </div>
+                <label for="hora">Hora da entrega/recolha:</label>
+                <input id="hora" name="hora" class="spinner" type="time" required value="19:00">
+                <div class="form-row">
+                    <label for="observacoes">Observações:</label>
+                    <textarea name="observacoes" id="observacoes" rows="2" placeholder="Ex: sem cebola, ponto extra, etc."></textarea>
+                </div>
+            </div>
+            <button id="finalizar" class="btn" type="submit">Finalizar encomenda</button>
+        </form>
+    </div>
+
+    <!-- Página Finalização -->
+    <div id="pagina-finalizar" class="hidden">
+        <h2>Encomenda registada!</h2>
+        <p>Quer fazer uma nova encomenda?</p>
+        <button id="nova-encomenda" class="btn">Sim</button>
+        <button id="sair" class="btn" style="background:#ccc;color:#333;">Não</button>
+    </div>
+</main>
+<script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <title>Teste Pizzaria</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .pizza { border: 1px solid #ccc; padding: 10px; margin: 10px 0; }
+        .btn { padding: 8px 16px; background: #007bff; color: white; border: none; cursor: pointer; }
+    </style>
+</head>
+<body>
+    <h1>Teste Pizzaria - Carregamento Direto</h1>
+    
+    <button onclick="carregarPizzas()" class="btn">Carregar Pizzas</button>
+    <button onclick="testarEncomenda()" class="btn">Testar Encomenda</button>
+    
+    <div id="pizzas"></div>
+    <div id="resultado"></div>
+
+    <script>
+        async function carregarPizzas() {
+            try {
+                const response = await fetch('http://localhost:3000/api/pizzas');
+                const data = await response.json();
+                
+                const container = document.getElementById('pizzas');
+                container.innerHTML = '<h2>Pizzas Carregadas:</h2>';
+                
+                if (data.success && data.data) {
+                    data.data.forEach(pizza => {
+                        container.innerHTML += `
+                            <div class="pizza">
+                                <h3>${pizza.nome}</h3>
+                                <p>${pizza.descricao}</p>
+                                <p>Preços: P:${pizza.preco_pequena}€ M:${pizza.preco_media}€ G:${pizza.preco_grande}€</p>
+                            </div>
+                        `;
+                    });
+                } else {
+                    container.innerHTML += '<p>Erro ao carregar pizzas</p>';
+                }
+            } catch (error) {
+                document.getElementById('pizzas').innerHTML = '<p>Erro: ' + error.message + '</p>';
+            }
+        }
+        
+        async function testarEncomenda() {
+            try {
+                const encomenda = {
+                    cliente_id: 999,
+                    tipo_entrega: "recolha",
+                    hora_entrega: "19:00",
+                    observacoes: "Teste direto",
+                    pizzas: [{
+                        pizza_id: 1,
+                        tamanho: "Média",
+                        quantidade: 1,
+                        preco_unitario: 17.5
+                    }]
+                };
+                
+                const response = await fetch('http://localhost:3000/api/encomendas', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(encomenda)
+                });
+                
+                const data = await response.json();
+                document.getElementById('resultado').innerHTML = '<h2>Resultado:</h2><pre>' + JSON.stringify(data, null, 2) + '</pre>';
+            } catch (error) {
+                document.getElementById('resultado').innerHTML = '<h2>Erro:</h2><p>' + error.message + '</p>';
+            }
+        }
+        
+        // Carregar pizzas automaticamente
+        carregarPizzas();
+    </script>
+</body>
+</html>
