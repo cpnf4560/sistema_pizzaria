@@ -1,0 +1,47 @@
+<svg width="600" height="400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradiente mais visível -->
+    <radialGradient id="mainBg" cx="50%" cy="30%">
+      <stop offset="0%" style="stop-color:#f8fff8;stop-opacity:0.4"/>
+      <stop offset="70%" style="stop-color:#e8f5e8;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#ffffff;stop-opacity:0.1"/>
+    </radialGradient>
+    
+    <!-- Padrão de elementos mais visíveis -->
+    <pattern id="subtlePattern" x="0" y="0" width="150" height="150" patternUnits="userSpaceOnUse">
+      <!-- Elementos decorativos mais visíveis -->
+      <circle cx="30" cy="30" r="4" fill="#00994d" opacity="0.08"/>
+      <circle cx="100" cy="70" r="3" fill="#00b359" opacity="0.06"/>
+      <circle cx="70" cy="120" r="3.5" fill="#27ae60" opacity="0.07"/>
+      
+      <!-- Formas geométricas sutis -->
+      <rect x="40" y="80" width="8" height="8" rx="2" fill="#00994d" opacity="0.04"/>
+      <rect x="110" y="30" width="6" height="6" rx="1" fill="#00b359" opacity="0.03"/>
+      
+      <!-- Linhas decorativas mais visíveis -->
+      <path d="M0,15 Q75,20 150,15" stroke="#00994d" stroke-width="1" fill="none" opacity="0.04"/>
+      <path d="M0,135 Q75,130 150,135" stroke="#00b359" stroke-width="1" fill="none" opacity="0.03"/>
+    </pattern>
+  </defs>
+  
+  <!-- Fundo base -->
+  <rect width="100%" height="100%" fill="url(#mainBg)"/>
+  
+  <!-- Padrão sutil -->
+  <rect width="100%" height="100%" fill="url(#subtlePattern)"/>
+  
+  <!-- Elementos decorativos grandes mais visíveis -->
+  <g opacity="0.04">
+    <!-- Círculos grandes decorativos -->
+    <circle cx="120" cy="100" r="50" fill="#00994d"/>
+    <circle cx="480" cy="280" r="60" fill="#00b359"/>
+    <circle cx="350" cy="180" r="35" fill="#27ae60"/>
+  </g>
+  
+  <!-- Formas adicionais para textura -->
+  <g opacity="0.02">
+    <!-- Hexágonos sutis -->
+    <polygon points="200,50 220,60 220,80 200,90 180,80 180,60" fill="#00994d"/>
+    <polygon points="450,150 470,160 470,180 450,190 430,180 430,160" fill="#00b359"/>
+  </g>
+</svg>

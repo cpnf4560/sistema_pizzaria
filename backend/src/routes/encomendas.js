@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const encomendaController = require('../controllers/encomendaController');
-const { validateEncomenda, validateUpdateStatus } = require('../middleware/validation');
+const { validateEncomenda, validateEncomendaWeb, validateUpdateStatus } = require('../middleware/validation');
 const { authenticateToken, requireRole } = require('../middleware/auth');
 
 // Rota para cliente ver suas próprias encomendas
@@ -27,7 +27,7 @@ router.get('/:id',
 
 // Criar nova encomenda pública (para formulário web)
 router.post('/', 
-  validateEncomenda, 
+  validateEncomendaWeb, 
   encomendaController.createEncomenda
 );
 

@@ -2,71 +2,1087 @@
 <html lang="pt">
 <head>
     <meta charset="UTF-8">
-    <title>Pizzaria Java - Encomenda</title>
+    <title>Pizzaria do Carlos - Encomenda</title>
     <meta name="viewport" content="width=800">
     <link rel="icon" type="image/png" href="https://cdn-icons-png.flaticon.com/512/4952/4952486.png">
+    <link rel="stylesheet" href="css/logo.css">
     <style>
-        body { font-family: Arial, sans-serif; background: #ebffe6; margin: 0; }
-        main { max-width: 800px; margin: 40px auto; background: #fff; border-radius: 12px; box-shadow: 0 0 10px #ace3b2; padding: 24px; }
+        /* Importar fonte moderna do Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        body { 
+            font-family: 'Inter', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background: linear-gradient(135deg, #e8f5e8 0%, #f0f8f0 50%, #e8f5e8 100%);
+            background-image: 
+                radial-gradient(circle at 20% 80%, rgba(0,153,77,0.03) 0%, transparent 50%),
+                radial-gradient(circle at 80% 20%, rgba(0,185,89,0.02) 0%, transparent 50%);
+            background-attachment: fixed;
+            margin: 0; 
+            min-height: 100vh;
+        }
+        
+        main { 
+            max-width: 800px; 
+            margin: 40px auto; 
+            background: linear-gradient(145deg, rgba(255,248,240,0.8) 0%, rgba(255,234,167,0.75) 100%);
+            background-image: url('images/main-background-warm.svg');
+            background-size: 600px 400px;
+            background-repeat: no-repeat;
+            background-position: center;
+            backdrop-filter: blur(10px);
+            border-radius: 16px; 
+            box-shadow: 0 8px 32px rgba(255,152,0,0.15), 0 2px 8px rgba(0,0,0,0.05); 
+            padding: 24px; 
+            transition: all 0.3s ease;
+            position: relative;
+        }
+        
+        main:hover {
+            box-shadow: 0 12px 40px rgba(0,153,77,0.15), 0 4px 12px rgba(0,0,0,0.08);
+        }
+        
         .hidden { display: none; }
-        h2 { color: #00994d; margin-top: 0; }
-        .form-row { display: flex; align-items: center; margin-bottom: 16px; }
-        .form-row label { flex: 0 0 120px; font-weight: bold; }
-        .form-row input, .form-row textarea { flex: 1; padding: 6px; border: 1px solid #b7d6b7; border-radius: 4px; }
-        .form-row textarea { resize: vertical; }
-        .btn { padding: 10px 32px; border: none; border-radius: 5px; background: #00994d; color: #fff; font-weight: bold; cursor: pointer; font-size: 16px; }
-        .btn[disabled] { background: #ccc; }
+        
+        h2 { 
+            color: #00994d; 
+            margin-top: 0; 
+            font-weight: 600;
+            font-size: 28px;
+            text-align: center;
+            margin-bottom: 24px;
+            position: relative;
+        }
+        
+        /* Efeito de typing no título principal */
+        .typing-effect {
+            overflow: hidden;
+            border-right: 3px solid #00994d;
+            white-space: nowrap;
+            margin: 0 auto;
+            animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+        }
+        
+        @keyframes typing {
+            from { width: 0 }
+            to { width: 100% }
+        }
+        
+        @keyframes blink-caret {
+            from, to { border-color: transparent }
+            50% { border-color: #00994d }
+        }
+        
+        .form-row { 
+            display: flex; 
+            align-items: center; 
+            margin-bottom: 20px; 
+        }
+        
+        .form-row label { 
+            flex: 0 0 130px; 
+            font-weight: 500; 
+            color: #2c5530;
+            font-size: 14px;
+        }
+        
+        .form-row input, .form-row textarea { 
+            flex: 1; 
+            padding: 12px 16px; 
+            border: 2px solid #e1f0e1; 
+            border-radius: 8px; 
+            font-size: 14px;
+            transition: all 0.3s ease;
+            background: #fafffe;
+        }
+        
+        .form-row input:focus, .form-row textarea:focus {
+            outline: none;
+            border-color: #00994d;
+            box-shadow: 0 0 0 3px rgba(0,153,77,0.1);
+            background: #fff;
+        }
+        
+        .form-row textarea { resize: vertical; min-height: 80px; }
+        
+        .btn { 
+            padding: 12px 24px; 
+            border: none; 
+            border-radius: 8px; 
+            background: linear-gradient(135deg, #00994d 0%, #00b359 100%);
+            color: #fff; 
+            font-weight: 600; 
+            cursor: pointer; 
+            font-size: 14px; 
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,153,77,0.3);
+            font-family: inherit;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        /* Efeito ripple nos botões */
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transition: width 0.6s, height 0.6s, top 0.6s, left 0.6s;
+            transform: translate(-50%, -50%);
+        }
+        
+        .btn:active::before {
+            width: 300px;
+            height: 300px;
+            top: 50%;
+            left: 50%;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,153,77,0.4);
+            background: linear-gradient(135deg, #00b359 0%, #00994d 100%);
+        }
+        
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0,153,77,0.3);
+        }
+        
+        .btn[disabled] { 
+            background: linear-gradient(135deg, #ccc 0%, #999 100%); 
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        
+        /* Efeito de loading nos botões */
+        .btn-loading {
+            position: relative;
+            color: transparent;
+        }
+        
+        .btn-loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 16px;
+            height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 2px solid #ffffff40;
+            border-top-color: #ffffff;
+            border-radius: 50%;
+            animation: buttonSpin 1s linear infinite;
+        }
+        
+        @keyframes buttonSpin {
+            to { transform: rotate(360deg); }
+        }
+        
+        /* Efeito de hover melhorado para pizza items */
+        .pizza-item {
+            border-bottom: 1px solid #e1f0e1; 
+            padding: 16px 0; 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+        }
+        
+        .pizza-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 0;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(0,153,77,0.05) 0%, rgba(0,153,77,0.02) 100%);
+            transition: width 0.4s ease;
+            border-radius: 8px;
+        }
+        
+        .pizza-item:hover::before {
+            width: 100%;
+        }
+        
+        .pizza-item:hover {
+            background: transparent;
+            border-radius: 8px;
+            padding: 16px 12px;
+            margin: 0 -12px;
+            transform: translateX(5px);
+        }
+        
         #menu { display: flex; gap: 24px; }
-        #pizzas { flex: 2; background: #f0fff0; border-radius: 8px; padding: 16px; }
-        #carrinho { flex: 1; background: #e6ffe6; border-radius: 8px; padding: 16px; min-width: 220px; }
-        .pizza-item { border-bottom: 1px solid #cbeacb; padding: 12px 0; display: flex; justify-content: space-between; align-items: center; }
-        .pizza-nome { font-size: 18px; font-weight: bold; color: #00994d; }
-        .pizza-desc { font-size: 13px; color: #333; }
-        .pizza-precos { display: flex; gap: 7px; }
-        .pizza-btn { background: #d35400; color: #fff; border: none; border-radius: 3px; padding: 4px 10px; cursor: pointer; }
-        #itens-carrinho { font-size: 15px; margin-bottom: 8px; }
-        #total-carrinho { font-weight: bold; margin-top: 12px; }
-        #opcoes { margin-top: 18px; background: #e6ffe6; border-radius: 8px; padding: 12px; }
-        #finalizar { margin-top: 16px; }
-        .radio-group { margin-bottom: 8px; }
-        .radio-group label { margin-right: 24px; }
-        .spinner { width: 70px; padding: 4px 7px; font-size: 15px; border-radius: 4px; border: 1px solid #b7d6b7; }
+        
+        #pizzas { 
+            flex: 2; 
+            background: linear-gradient(145deg, #f8fff8 0%, #f0fff0 100%);
+            background-image: url('images/menu-background.svg');
+            background-size: 400px 300px;
+            background-repeat: repeat;
+            background-position: 0 0;
+            border-radius: 12px; 
+            padding: 20px; 
+            border: 1px solid #e8f5e8;
+            position: relative;
+        }
+        
+        #pizzas::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(145deg, rgba(248,255,248,0.75) 0%, rgba(240,255,240,0.70) 100%);
+            border-radius: 12px;
+            pointer-events: none;
+            z-index: 1;
+        }
+        
+        #pizzas > * {
+            position: relative;
+            z-index: 2;
+        }
+        
+        #carrinho { 
+            flex: 1; 
+            background: linear-gradient(145deg, #f0fff0 0%, #e6ffe6 100%); 
+            border-radius: 12px; 
+            padding: 20px; 
+            min-width: 220px; 
+            border: 1px solid #d4ecd4;
+            position: sticky;
+            top: 20px;
+            height: fit-content;
+            transition: all 0.3s ease;
+        }
+        
+        /* Efeito de shake no carrinho quando itens são adicionados */
+        .carrinho-shake {
+            animation: carrinhoShake 0.5s ease-in-out;
+        }
+        
+        @keyframes carrinhoShake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+        
+        .pizza-nome { 
+            font-size: 18px; 
+            font-weight: 600; 
+            color: #00994d; 
+            margin-bottom: 4px;
+        }
+        
+        .pizza-desc { 
+            font-size: 13px; 
+            color: #666; 
+            line-height: 1.4;
+        }
+        
+        .pizza-precos { display: flex; gap: 8px; }
+        
+        .pizza-btn { 
+            background: linear-gradient(135deg, #e67e22 0%, #d35400 100%); 
+            color: #fff; 
+            border: none; 
+            border-radius: 6px; 
+            padding: 6px 12px; 
+            cursor: pointer; 
+            font-size: 12px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(211,84,0,0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .pizza-btn:hover {
+            transform: translateY(-1px) scale(1.05);
+            box-shadow: 0 4px 12px rgba(211,84,0,0.4);
+            background: linear-gradient(135deg, #d35400 0%, #e67e22 100%);
+        }
+        
+        /* Efeito de glow quando clicado */
+        .pizza-btn:active {
+            animation: pizzaGlow 0.6s ease-out;
+        }
+        
+        @keyframes pizzaGlow {
+            0% { box-shadow: 0 2px 6px rgba(211,84,0,0.3); }
+            50% { box-shadow: 0 0 20px rgba(211,84,0,0.8), 0 0 30px rgba(255,165,0,0.6); }
+            100% { box-shadow: 0 2px 6px rgba(211,84,0,0.3); }
+        }
+        
+        #itens-carrinho { 
+            font-size: 14px; 
+            margin-bottom: 12px; 
+            line-height: 1.5;
+        }
+        
+        #total-carrinho { 
+            font-weight: 700; 
+            margin-top: 16px; 
+            font-size: 18px;
+            color: #00994d;
+            padding: 12px;
+            background: rgba(0,153,77,0.05);
+            border-radius: 8px;
+            text-align: center;
+        }
+        
+        #opcoes { 
+            margin-top: 24px; 
+            background: linear-gradient(145deg, #f0fff0 0%, #e6ffe6 100%); 
+            border-radius: 12px; 
+            padding: 20px; 
+            border: 1px solid #d4ecd4;
+        }
+        
+        #finalizar { margin-top: 20px; }
+        
+        .radio-group { 
+            margin-bottom: 12px; 
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .radio-group label { 
+            font-weight: 500;
+            color: #2c5530;
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            transition: color 0.3s ease;
+        }
+        
+        .radio-group label:hover {
+            color: #00994d;
+        }
+        
+        .radio-group input[type="radio"] {
+            margin-right: 6px;
+            transform: scale(1.1);
+        }
+        
+        .spinner { 
+            width: 70px; 
+            padding: 8px 12px; 
+            font-size: 14px; 
+            border-radius: 6px; 
+            border: 2px solid #e1f0e1; 
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .spinner:focus {
+            outline: none;
+            border-color: #00994d;
+            box-shadow: 0 0 0 3px rgba(0,153,77,0.1);
+        }
+        
+        /* Estilos para a secção de hora */
+        .hora-section {
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .hora-label {
+            display: block;
+            font-weight: 500;
+            color: #2c5530;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .hora-select {
+            padding: 10px 15px;
+            border: 2px solid #e1f0e1;
+            border-radius: 8px;
+            font-size: 14px;
+            background: #fafffe;
+            color: #2c5530;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            min-width: 120px;
+        }
+        
+        .hora-select:focus {
+            outline: none;
+            border-color: #00994d;
+            box-shadow: 0 0 0 3px rgba(0,153,77,0.1);
+            background: #fff;
+        }
+        
+        .hora-select:hover {
+            border-color: #00994d;
+            background: #fff;
+        }
+        
+        /* Animação de entrada suave */
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        /* Efeito de shake para erros */
+        .shake-error {
+            animation: shake 0.5s ease-in-out;
+            border-color: #e74c3c !important;
+        }
+        
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            10%, 30%, 50%, 70%, 90% { transform: translateX(-5px); }
+            20%, 40%, 60%, 80% { transform: translateX(5px); }
+        }
+        
+        /* Efeito de celebração para encomenda finalizada */
+        .celebration {
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .celebration::before {
+            content: '🎉';
+            position: absolute;
+            top: -50px;
+            left: 20%;
+            font-size: 30px;
+            animation: fallConfetti 2s ease-in-out infinite;
+        }
+        
+        .celebration::after {
+            content: '🍕';
+            position: absolute;
+            top: -50px;
+            right: 20%;
+            font-size: 25px;
+            animation: fallConfetti 2s ease-in-out infinite 0.5s;
+        }
+        
+        @keyframes fallConfetti {
+            0% { 
+                transform: translateY(-100px) rotate(0deg);
+                opacity: 1;
+            }
+            100% { 
+                transform: translateY(200px) rotate(360deg);
+                opacity: 0;
+            }
+        }
+        
+        /* Efeito de glow em elementos ativos */
+        .glow-active {
+            box-shadow: 0 0 20px rgba(0,153,77,0.5), 0 0 40px rgba(0,153,77,0.3);
+            transition: box-shadow 0.3s ease;
+        }
+        
+        /* Estilos para os botões principais da página inicial */
+        .botoes-principais-horizontal {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        /* Estilos do carrinho */
+        #total {
+            margin-top: 15px;
+            padding-top: 15px;
+            border-top: 2px solid #4CAF50;
+            background: linear-gradient(135deg, #e8f5e8 0%, #d4ecd4 100%);
+            border-radius: 8px;
+            padding: 15px;
+        }
+        
+        #total h3 {
+            margin: 0 0 10px 0;
+            color: #2d5016;
+            font-size: 1.2em;
+            font-weight: bold;
+        }
+        
+        #finalizarPedido {
+            width: 100%;
+            padding: 12px;
+            background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 15px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(76, 175, 80, 0.3);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        #finalizarPedido:hover {
+            background: linear-gradient(135deg, #45a049 0%, #3d8b40 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(76, 175, 80, 0.4);
+        }
+        
+        #finalizarPedido:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 4px rgba(76, 175, 80, 0.3);
+        }
+        
+        /* Loading spinner para botões */
+        .loading {
+            position: relative;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+        
+        .loading::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            margin-left: -10px;
+            margin-top: -10px;
+            width: 20px;
+            height: 20px;
+            border: 2px solid transparent;
+            border-top: 2px solid white;
+            border-radius: 50%;
+            animation: spinLoader 1s linear infinite;
+        }
+        
+        @keyframes spinLoader {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .btn-opcao {
+            flex: 1;
+            max-width: 200px;
+            min-width: 180px;
+            padding: 16px 20px;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #00994d 0%, #00b359 100%);
+            color: #fff;
+            font-weight: 600;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(0,153,77,0.3);
+            font-family: inherit;
+            text-align: center;
+        }
+        
+        .btn-opcao:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,153,77,0.4);
+            background: linear-gradient(135deg, #00b359 0%, #00994d 100%);
+        }
+        
+        .btn-opcao:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 8px rgba(0,153,77,0.3);
+        }
+        
+        @media (max-width: 768px) {
+            .botoes-principais-horizontal {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .btn-opcao {
+                max-width: 280px;
+                width: 100%;
+            }
+        }
+        
+        /* Estilos para página de admin */
+        .admin-section {
+            background: linear-gradient(145deg, #f8fff8 0%, #f0fff0 100%);
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            border: 1px solid #e8f5e8;
+        }
+        
+        .admin-section h3 {
+            color: #00994d;
+            margin-bottom: 15px;
+            font-size: 18px;
+        }
+        
+        .estatisticas-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .estatistica-card {
+            background: linear-gradient(135deg, #00994d 0%, #00b359 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 12px rgba(0,153,77,0.3);
+        }
+        
+        .estatistica-valor {
+            font-size: 24px;
+            font-weight: 700;
+            margin-bottom: 5px;
+        }
+        
+        .estatistica-label {
+            font-size: 12px;
+            opacity: 0.9;
+        }
+        
+        .tabela-container {
+            overflow-x: auto;
+        }
+        
+        .tabela-container table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+        
+        .tabela-container th {
+            background: linear-gradient(135deg, #00994d 0%, #00b359 100%);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-weight: 600;
+        }
+        
+        .tabela-container td {
+            padding: 10px 12px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .tabela-container tr:hover {
+            background: #f8fff8;
+        }
+        
+        @media (max-width: 768px) {
+            .estatisticas-grid {
+                grid-template-columns: 1fr 1fr;
+            }
+            
+            .tabela-container {
+                font-size: 14px;
+            }
+            
+            .tabela-container th,
+            .tabela-container td {
+                padding: 8px;
+            }
+        }
+        
         @media (max-width: 900px) {
-            main { padding: 6px; }
+            main { 
+                padding: 16px; 
+                margin: 20px;
+                border-radius: 12px;
+            }
             #menu { flex-direction: column; }
+            #carrinho { position: static; }
+            h2 { font-size: 24px; }
+        }
+
+        /* Estilos para Pop-ups de Pagamento */
+        #popup-pagamento {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            z-index: 10000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #popup-conteudo {
+            background: white;
+            border-radius: 15px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { transform: scale(0.8); opacity: 0; }
+            to { transform: scale(1); opacity: 1; }
+        }
+
+        .popup-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .popup-header h2 {
+            margin: 0;
+            color: #333;
+            font-size: 24px;
+        }
+
+        .popup-fechar {
+            background: none;
+            border: none;
+            font-size: 30px;
+            cursor: pointer;
+            color: #999;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        .popup-fechar:hover {
+            background: #f0f0f0;
+            color: #333;
+        }
+
+        .popup-body {
+            padding: 20px;
+        }
+
+        .popup-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 20px;
+            border-top: 1px solid #eee;
+        }
+
+        .btn-cancelar, .btn-confirmar {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .btn-cancelar {
+            background: #95a5a6;
+            color: white;
+        }
+
+        .btn-cancelar:hover {
+            background: #7f8c8d;
+        }
+
+        .btn-confirmar {
+            background: linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);
+            color: white;
+        }
+
+        .btn-confirmar:hover {
+            background: linear-gradient(135deg, #229954 0%, #27ae60 100%);
+            transform: translateY(-2px);
+        }
+
+        @media (max-width: 600px) {
+            #popup-conteudo {
+                margin: 20px;
+                width: calc(100% - 40px);
+            }
+            
+            .popup-footer {
+                flex-direction: column;
+            }
+            
+            .btn-cancelar, .btn-confirmar {
+                width: 100%;
+            }
         }
     </style>
 </head>
 <body>
 <main>
-    <!-- Página Cliente/Login -->
+    <!-- Header com Logo -->
+    <div class="header-logo">
+        <div class="logo-container">
+            <img src="images/logo.png" 
+                  alt="Pizzaria do Carlos" 
+                  class="logo-img">
+        </div>
+        <div class="logo-text">PIZZARIA DO CARLOS &lt;/&gt;</div>
+        <div class="logo-subtitle">Programa a tua pizza! 🍕</div>
+        
+        <!-- Botões secundários no canto superior direito -->
+        <div class="botoes-secundarios-header">
+            <button id="btn-idioma" class="btn-mini">
+                <span data-pt="traducao" data-en="translate">🌍 EN</span>
+            </button>
+            <button id="btn-sair-app" class="btn-mini btn-sair">
+                <span data-pt="sair" data-en="exit">❌ Sair</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Página Inicial -->
+    <div id="pagina-inicial">
+        <h2 data-pt="bemvindo" data-en="welcome">Bem-vindos à Pizzaria do Carlos!</h2>
+        <p data-pt="escolha" data-en="choose">Escolha uma opção para continuar:</p>
+        
+        <!-- Botões principais horizontais -->
+        <div class="botoes-principais-horizontal">
+            <button id="btn-login" class="btn-opcao">
+                <span data-pt="utilizador_registado" data-en="registered_user">🔐 Utilizador</span>
+            </button>
+            <button id="btn-registar" class="btn-opcao">
+                <span data-pt="registar" data-en="register">📝 Registar</span>
+            </button>
+            <button id="btn-demo" class="btn-opcao">
+                <span data-pt="demo" data-en="continue_no_register">🍕 Continuar sem registo</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Página Login -->
+    <div id="pagina-login" class="hidden">
+        <h2 data-pt="login" data-en="login">🔐 Login</h2>
+        <form id="form-login">
+            <div class="form-row">
+                <label for="username" data-pt="email_ou_username" data-en="email_or_username">Email ou Username:</label>
+                <input id="username" name="username" type="text" required placeholder="seu.email@exemplo.com ou username">
+                <small style="color: #666; font-size: 12px; margin-top: 4px; display: block;">
+                    💡 Pode usar o seu email ou username para fazer login
+                </small>
+            </div>
+            <div class="form-row">
+                <label for="password" data-pt="password" data-en="password">Password:</label>
+                <input id="password" name="password" type="password" required>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="btn" data-pt="entrar" data-en="enter">Entrar</button>
+                <button type="button" id="btn-voltar-inicial" class="btn" style="background: #95a5a6; margin-left: 10px;" data-pt="voltar" data-en="back">Voltar</button>
+            </div>
+        </form>
+        <div id="login-erro" class="hidden" style="color: red; text-align: center; margin-top: 15px;"></div>
+    </div>
+
+    <!-- Página Registo -->
+    <div id="pagina-registo" class="hidden">
+        <h2 data-pt="novo_registo" data-en="new_registration">📝 Novo Registo</h2>
+        <form id="form-registo">
+            <div class="form-row">
+                <label for="reg-username" data-pt="username" data-en="username">Username:</label>
+                <input id="reg-username" name="username" type="text" required>
+            </div>
+            <div class="form-row">
+                <label for="reg-password" data-pt="password" data-en="password">Password:</label>
+                <input id="reg-password" name="password" type="password" required>
+            </div>
+            <div class="form-row">
+                <label for="reg-name" data-pt="nome_completo" data-en="full_name">Nome Completo:</label>
+                <input id="reg-name" name="name" type="text" required>
+            </div>
+            <div class="form-row">
+                <label for="reg-morada" data-pt="morada" data-en="address">Morada:</label>
+                <input id="reg-morada" name="morada" type="text" required>
+            </div>
+            <div class="form-row">
+                <label for="reg-telefone" data-pt="telefone" data-en="phone">Telefone:</label>
+                <input id="reg-telefone" name="telefone" type="text" required maxlength="14" value="+351 " pattern="^\+351 \d{9}$">
+            </div>
+            <div class="form-row">
+                <label for="reg-email" data-pt="email" data-en="email">E-mail:</label>
+                <input id="reg-email" name="email" type="email" required>
+            </div>
+            <div style="text-align: center; margin-top: 20px;">
+                <button type="submit" class="btn" data-pt="registar" data-en="register">Registar</button>
+                <button type="button" id="btn-voltar-inicial-reg" class="btn" style="background: #95a5a6; margin-left: 10px;" data-pt="voltar" data-en="back">Voltar</button>
+            </div>
+        </form>
+        <div id="registo-erro" class="hidden" style="color: red; text-align: center; margin-top: 15px;"></div>
+        <div id="registo-sucesso" class="hidden" style="color: green; text-align: center; margin-top: 15px;"></div>
+    </div>
+
+    <!-- Página Boas-vindas (após login) -->
+    <div id="pagina-boasvindas" class="hidden">
+        <h2 class="typing-effect" data-pt="boasvindas" data-en="welcome_back">Bem-vindo à Pizzaria do Carlos!</h2>
+        <p id="nome-utilizador"></p>
+        <div class="botoes-principais-horizontal" style="margin-top: 30px;">
+            <button id="btn-fazer-encomenda" class="btn-opcao" data-pt="fazer_encomenda" data-en="make_order">🍕 Fazer Encomenda</button>
+            <button id="btn-ver-historico" class="btn-opcao" style="background: linear-gradient(135deg, #3498db 0%, #2980b9 100%);" data-pt="ver_historico" data-en="view_history">📋 Ver Histórico</button>
+            <button id="btn-logout" class="btn-opcao" style="background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);" data-pt="logout" data-en="logout">🔓 Logout</button>
+        </div>
+    </div>
+
+    <!-- Página Cliente/Demo -->
     <div id="pagina-cliente">
-        <h2>Dados do Cliente</h2>
+        <h2 data-pt="dados_cliente" data-en="customer_data">👤 Dados do Cliente</h2>
         <form id="form-cliente">
             <div class="form-row">
-                <label for="nome">Nome:</label>
+                <label for="nome" data-pt="nome" data-en="nome">Nome:</label>
                 <input id="nome" name="nome" type="text" required autocomplete="name">
             </div>
             <div class="form-row">
-                <label for="morada">Morada:</label>
+                <label for="morada" data-pt="morada" data-en="address">Morada:</label>
                 <input id="morada" name="morada" type="text" required autocomplete="address">
             </div>
             <div class="form-row">
-                <label for="telefone">Telefone:</label>
+                <label for="telefone" data-pt="telefone" data-en="phone">Telefone:</label>
                 <input id="telefone" name="telefone" type="text" required maxlength="14" value="+351 " autocomplete="tel" pattern="^\+351 \d{9}$">
             </div>
             <div class="form-row">
-                <label for="email">Email:</label>
+                <label for="email" data-pt="email" data-en="email">Email:</label>
                 <input id="email" name="email" type="email" required autocomplete="email">
             </div>
-            <button type="submit" class="btn">Avançar para o Menu</button>
-            <button type="button" id="demo-btn" class="btn" style="background:#f39c12;margin-left:12px;">Demo</button>
+            <button type="submit" class="btn" data-pt="avancar_menu" data-en="go_to_menu">Avançar para o Menu</button>
+            <button type="button" id="demo-btn" class="btn" style="background:#f39c12;margin-left:12px;" data-pt="demo_btn" data-en="demo_btn">Demo</button>
+            <button type="button" id="btn-preencher-dados" class="btn btn-especial hidden" style="background:linear-gradient(135deg, #27ae60 0%, #2ecc71 100%);margin-left:12px;position:relative;overflow:hidden;">
+                <span style="position:relative;z-index:1;" data-pt="usar_meus_dados" data-en="use_my_data">✨ Usar Meus Dados</span>
+            </button>
+                        <button type="button" id="btn-historico" class="btn btn-especial hidden" style="background:linear-gradient(135deg, #9b59b6 0%, #8e44ad 100%);margin-left:12px;position:relative;overflow:hidden;">
+                <span style="position:relative;z-index:1;" data-pt="ver_historico_btn" data-en="view_history_btn">📊 Ver Histórico</span>
+            </button>
+            <button type="button" id="btn-voltar-demo" class="btn" style="background: #95a5a6; margin-left: 10px;" data-pt="voltar" data-en="back">Voltar</button>
         </form>
+    </div>
+
+    <!-- Página Histórico -->
+    <div id="pagina-historico" class="hidden">
+        <h2 data-pt="historico_encomendas" data-en="order_history">📊 Histórico de Encomendas</h2>
+        <div id="lista-historico">
+            <!-- Será preenchido via JavaScript -->
+        </div>
+        <div style="text-align: center; margin-top: 20px;">
+            <button id="btn-voltar-boasvindas" class="btn" style="background: #95a5a6;" data-pt="voltar" data-en="back">Voltar</button>
+        </div>
+    </div>
+
+    <!-- Página Admin -->
+    <div id="pagina-admin" class="hidden">
+        <h2>📊 Painel de Administração</h2>
+        
+        <!-- Estatísticas Gerais -->
+        <div class="admin-section">
+            <h3>📈 Estatísticas Gerais (Últimos 30 dias)</h3>
+            <div class="estatisticas-grid">
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="total-encomendas">-</div>
+                    <div class="estatistica-label">Total Encomendas</div>
+                </div>
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="total-clientes">-</div>
+                    <div class="estatistica-label">Total Clientes</div>
+                </div>
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="receita-total">-</div>
+                    <div class="estatistica-label">Receita Total</div>
+                </div>
+                <div class="estatistica-card">
+                    <div class="estatistica-valor" id="ticket-medio">-</div>
+                    <div class="estatistica-label">Ticket Médio</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Encomendas por Dia -->
+        <div class="admin-section">
+            <h3>📅 Encomendas por Dia</h3>
+            <div class="tabela-container">
+                <table id="tabela-encomendas-dia">
+                    <thead>
+                        <tr>
+                            <th>Data</th>
+                            <th>Nº Encomendas</th>
+                            <th>Total Vendas</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Será preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Pizzas Mais Vendidas -->
+        <div class="admin-section">
+            <h3>🍕 Pizzas Mais Vendidas</h3>
+            <div class="tabela-container">
+                <table id="tabela-pizzas-vendidas">
+                    <thead>
+                        <tr>
+                            <th>Pizza</th>
+                            <th>Quantidade</th>
+                            <th>Receita</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Será preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Clientes Mais Ativos -->
+        <div class="admin-section">
+            <h3>👥 Clientes Mais Ativos</h3>
+            <div class="tabela-container">
+                <table id="tabela-clientes-ativos">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Encomendas</th>
+                            <th>Total Gasto</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Será preenchido via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div style="text-align: center; margin-top: 30px;">
+            <button id="btn-refresh-relatorios" class="btn">🔄 Atualizar Relatórios</button>
+            <button id="btn-sair-admin" class="btn" style="background: #e74c3c; margin-left: 10px;">❌ Sair</button>
+        </div>
     </div>
 
     <!-- Página Menu -->
     <div id="pagina-menu" class="hidden">
-        <h2>Menu de Pizzas</h2>
+        <h2 data-pt="menu_pizzas" data-en="menu_pizzas">🍕 Menu de Pizzas</h2>
         <div id="menu">
             <!-- Lista de Pizzas -->
             <div id="pizzas">
@@ -74,37 +1090,115 @@
             </div>
             <!-- Carrinho -->
             <div id="carrinho">
-                <h3>Carrinho</h3>
+                <h3 data-pt="carrinho" data-en="carrinho">Carrinho</h3>
                 <div id="itens-carrinho"></div>
-                <div id="total-carrinho">Total: 0.00 € (IVA incl.)</div>
+                <div id="total-carrinho" data-pt="total" data-en="total">Total: 0.00 € (IVA incl.)</div>
             </div>
         </div>
         <!-- Opções de Encomenda -->
         <form id="form-encomenda">
             <div id="opcoes">
                 <div class="radio-group">
-                    <label><input type="radio" name="entrega" value="recolha" checked> Recolha no restaurante</label>
-                    <label><input type="radio" name="entrega" value="domicilio"> Entrega ao domicílio (+3,90€)</label>
+                    <label><input type="radio" name="entrega" value="recolha" checked> <span data-pt="recolha" data-en="recolha">Recolha no restaurante</span></label>
+                    <label><input type="radio" name="entrega" value="entrega"> <span data-pt="entrega" data-en="entrega">Entrega ao domicílio (+3,90€)</span></label>
                 </div>
-                <label for="hora">Hora da entrega/recolha:</label>
-                <input id="hora" name="hora" class="spinner" type="time" required value="19:00">
+                
+                <br>
+                <div class="hora-section">
+                    <label for="hora" class="hora-label" data-pt="hora_entrega" data-en="hora_entrega">Hora da entrega/recolha:</label>
+                    <select id="hora" name="hora" class="hora-select" required>
+                        <option value="18:00">18:00</option>
+                        <option value="18:15">18:15</option>
+                        <option value="18:30">18:30</option>
+                        <option value="18:45">18:45</option>
+                        <option value="19:00" selected>19:00</option>
+                        <option value="19:15">19:15</option>
+                        <option value="19:30">19:30</option>
+                        <option value="19:45">19:45</option>
+                        <option value="20:00">20:00</option>
+                        <option value="20:15">20:15</option>
+                        <option value="20:30">20:30</option>
+                        <option value="20:45">20:45</option>
+                        <option value="21:00">21:00</option>
+                        <option value="21:15">21:15</option>
+                        <option value="21:30">21:30</option>
+                        <option value="21:45">21:45</option>
+                        <option value="22:00">22:00</option>
+                        <option value="22:15">22:15</option>
+                        <option value="22:30">22:30</option>
+                        <option value="22:45">22:45</option>
+                        <option value="23:00">23:00</option>
+                    </select>
+                </div>
+                
+                <br>
+                
+                <!-- Secção de Pagamento -->
+                <div style="background: linear-gradient(145deg, #f0fff0 0%, #e6ffe6 100%); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid #d4ecd4;">
+                    <h4 style="color: #00994d; margin: 0 0 15px 0; font-size: 16px;">💳 Método de Pagamento</h4>
+                    
+                    <div class="radio-group" style="flex-direction: column; gap: 12px; align-items: flex-start;">
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.3s;">
+                            <input type="radio" name="metodo_pagamento" value="entrega" checked style="margin-right: 10px; transform: scale(1.2);">
+                            <span style="font-weight: 500;">💵 Pagamento na entrega (numerário/cartão)</span>
+                        </label>
+                        
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.3s;">
+                            <input type="radio" name="metodo_pagamento" value="mbway" style="margin-right: 10px; transform: scale(1.2);">
+                            <span style="font-weight: 500;">📱 Pré-pagamento MB WAY</span>
+                        </label>
+                        
+                        <label style="display: flex; align-items: center; cursor: pointer; padding: 8px; border-radius: 6px; transition: background 0.3s;">
+                            <input type="radio" name="metodo_pagamento" value="multibanco" style="margin-right: 10px; transform: scale(1.2);">
+                            <span style="font-weight: 500;">🏦 Pré-pagamento Referência Multibanco</span>
+                        </label>
+                    </div>
+                </div>
+                
                 <div class="form-row">
-                    <label for="observacoes">Observações:</label>
+                    <label for="observacoes" data-pt="observacoes" data-en="observacoes">Observações:</label>
                     <textarea name="observacoes" id="observacoes" rows="2" placeholder="Ex: sem cebola, ponto extra, etc."></textarea>
                 </div>
             </div>
-            <button id="finalizar" class="btn" type="submit">Finalizar encomenda</button>
+            <button id="finalizar" class="btn" type="submit" data-pt="finalizar_encomenda" data-en="finalizar_encomenda">Finalizar encomenda</button>
         </form>
     </div>
 
     <!-- Página Finalização -->
     <div id="pagina-finalizar" class="hidden">
-        <h2>Encomenda registada!</h2>
-        <p>Quer fazer uma nova encomenda?</p>
-        <button id="nova-encomenda" class="btn">Sim</button>
-        <button id="sair" class="btn" style="background:#ccc;color:#333;">Não</button>
+        <h2 data-pt="encomenda_registada" data-en="encomenda_registada">🎉 Encomenda registada!</h2>
+        <p data-pt="nova_encomenda" data-en="nova_encomenda">Quer fazer uma nova encomenda?</p>
+        <button id="nova-encomenda" class="btn" data-pt="sim" data-en="sim">Sim</button>
+        <button id="sair" class="btn" style="background:#ccc;color:#333;" data-pt="nao" data-en="nao">Não</button>
+    </div>
+
+    <!-- Pop-ups de Pagamento -->
+    <div id="popup-pagamento">
+        <div id="popup-conteudo">
+            <!-- Conteúdo será preenchido dinamicamente -->
+        </div>
     </div>
 </main>
+
+<!-- Rodapé Informativo -->
+<footer style="background: linear-gradient(135deg, #3d6b42 0%, #2c5530 100%); color: white; text-align: center; padding: 12px 0; margin-top: 60px; border-top: 2px solid #00994d;">
+    <div style="max-width: 800px; margin: 0 auto; padding: 0 20px;">
+        <div style="margin-bottom: 8px;">
+            <h4 style="margin: 0 0 4px 0; font-size: 14px; color: #95cf97;">📍 Horário de Encomendas Online</h4>
+            <p style="margin: 0; font-size: 12px; opacity: 0.9;">Terças-feiras a domingo, das 18h00 às 23h00</p>
+        </div>
+        <div style="border-top: 1px solid rgba(255,255,255,0.2); padding-top: 8px;">
+            <p style="margin: 0; font-size: 11px; opacity: 0.8;">Copyright © 2025 Carlos Correia. Todos os direitos reservados.</p>
+        </div>
+    </div>
+</footer>
+
+<script src="js/particles.js"></script>
+<script src="js/animations.js"></script>
+<script src="js/translation.js"></script>
+<script src="js/logo-component.js"></script>
+<script src="js/login-system.js"></script>
+<script src="js/admin-system.js"></script>
 <script src="app.js"></script>
 </body>
 </html>

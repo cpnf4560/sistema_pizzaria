@@ -1,0 +1,378 @@
+/* Logo e Header Styles - Pizzaria do Carlos */
+
+.header-logo {
+    text-align: center;
+    background: linear-gradient(135deg, #1a4025, #2c5530, #4a7c59, #68a85e);
+    background-size: 400% 400%;
+    animation: gradientShift 8s ease infinite;
+    padding: 20px;
+    margin: -24px -24px 30px -24px;
+    border-radius: 12px 12px 0 0;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.header-logo::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(45deg, 
+        rgba(255,255,255,0.1) 0%, 
+        transparent 30%, 
+        transparent 70%, 
+        rgba(255,255,255,0.1) 100%);
+    pointer-events: none;
+}
+
+@keyframes gradientShift {
+    0% {
+        background-position: 0% 50%;
+    }
+    50% {
+        background-position: 100% 50%;
+    }
+    100% {
+        background-position: 0% 50%;
+    }
+}
+
+.logo-container {
+    display: inline-block;
+    position: relative;
+}
+
+.logo-img {
+    width: 120px;
+    height: 120px;
+    border-radius: 50%;
+    border: 4px solid #fff;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    transition: transform 0.3s ease;
+    background: #fff;
+    object-fit: cover;
+}
+
+.logo-img:hover {
+    transform: scale(1.05);
+}
+
+.logo-text {
+    color: #fff;
+    font-size: 28px;
+    font-weight: bold;
+    margin-top: 15px;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+    letter-spacing: 1px;
+}
+
+.logo-subtitle {
+    color: #a8d8a8;
+    font-size: 14px;
+    margin-top: 5px;
+    font-style: italic;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .header-logo {
+        padding: 15px;
+        margin: -16px -16px 20px -16px;
+    }
+    
+    .logo-img {
+        width: 80px;
+        height: 80px;
+    }
+    
+    .logo-text {
+        font-size: 20px;
+        margin-top: 10px;
+    }
+    
+    .logo-subtitle {
+        font-size: 12px;
+    }
+    
+    .botoes-principais-horizontal {
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .btn-opcao {
+        min-width: 250px;
+        padding: 15px 20px !important;
+        font-size: 16px !important;
+    }
+    
+    .botoes-secundarios-header {
+        top: 10px;
+        right: 10px;
+        flex-direction: column;
+        gap: 5px;
+    }
+    
+    .btn-mini {
+        padding: 8px 10px !important;
+        font-size: 10px !important;
+        min-width: 50px;
+    }
+}
+
+/* Estilos para os botões principais na página inicial */
+.botoes-principais-horizontal {
+    display: flex;
+    justify-content: center;
+    gap: 24px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+}
+
+.btn-opcao {
+    padding: 16px 28px !important;
+    font-size: 15px !important;
+    min-width: 200px;
+    background: linear-gradient(135deg, #00994d 0%, #00b359 20%, #00994d 100%) !important;
+    color: white !important;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 6px 20px rgba(0,153,77,0.3);
+    position: relative;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-opcao::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.6s;
+}
+
+.btn-opcao:hover::before {
+    left: 100%;
+}
+
+.btn-opcao:hover {
+    background: linear-gradient(135deg, #00b359 0%, #00994d 20%, #00b359 100%) !important;
+    background: linear-gradient(135deg, #00b359 0%, #00994d 20%, #00b359 100%) !important;
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 10px 30px rgba(0,153,77,0.5);
+}
+
+.btn-opcao:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Botões secundários no header (EN e Sair) */
+.botoes-secundarios-header {
+    position: absolute;
+    top: 15px;
+    right: 15px;
+    display: flex;
+    gap: 10px;
+    z-index: 10;
+}
+
+.btn-mini {
+    padding: 8px 16px !important;
+    font-size: 12px !important;
+    min-width: 70px;
+    background: linear-gradient(135deg, #95a5a6 0%, #7f8c8d 100%) !important;
+    color: white !important;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+    font-family: 'Inter', sans-serif;
+}
+
+.btn-mini:hover {
+    background: linear-gradient(135deg, #7f8c8d 0%, #95a5a6 100%) !important;
+    transform: translateY(-3px) scale(1.05);
+    box-shadow: 0 6px 20px rgba(0,0,0,0.3);
+}
+
+.btn-mini.btn-sair {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+}
+
+.btn-mini.btn-sair:hover {
+    background: linear-gradient(135deg, #c0392b 0%, #e74c3c 100%) !important;
+}
+
+.btn-mini:active {
+    transform: translateY(-1px) scale(0.95);
+    transition: all 0.1s ease;
+}
+
+/* Estilos modernos para formulários e páginas */
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: #2c5530;
+}
+
+/* Melhorias para botões especiais */
+.btn-especial {
+    position: relative;
+    overflow: hidden;
+    font-weight: 600;
+    transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.2);
+}
+
+.btn-especial::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.6s;
+    z-index: 0;
+}
+
+.btn-especial:hover::before {
+    left: 100%;
+}
+
+.btn-especial:hover {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 8px 25px rgba(0,0,0,0.3);
+}
+
+.btn-especial:active {
+    transform: translateY(-1px) scale(0.98);
+    transition: all 0.1s ease;
+}
+
+/* Estilos para histórico */
+.historico-item {
+    background: linear-gradient(145deg, #ffffff 0%, #f8fff8 100%);
+    border: 1px solid #e8f5e8;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 16px;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.historico-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0,153,77,0.1);
+    border-color: #d4ecd4;
+}
+
+.historico-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #e8f5e8;
+}
+
+.historico-data {
+    font-size: 14px;
+    color: #666;
+    font-weight: 500;
+}
+
+.historico-total {
+    font-weight: 700;
+    color: #00994d;
+    font-size: 18px;
+}
+
+.historico-detalhes {
+    margin-top: 12px;
+}
+
+.historico-pizza {
+    background: rgba(0,153,77,0.05);
+    padding: 8px 12px;
+    border-radius: 6px;
+    margin-bottom: 6px;
+    border-left: 3px solid #00994d;
+}
+
+/* Animações de entrada */
+.slide-in {
+    animation: slideIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes slideIn {
+    from {
+        opacity: 0;
+        transform: translateX(-30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+/* Loading spinner moderno */
+.loading-spinner {
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    border: 3px solid #e8f5e8;
+    border-radius: 50%;
+    border-top-color: #00994d;
+    animation: spin 1s ease-in-out infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Toast notifications */
+.toast {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: linear-gradient(135deg, #00994d 0%, #00b359 100%);
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 20px rgba(0,153,77,0.3);
+    z-index: 1000;
+    animation: toastSlide 0.5s ease-out;
+}
+
+.toast.error {
+    background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+}
+
+@keyframes toastSlide {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}

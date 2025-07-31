@@ -27,7 +27,7 @@ public class PizzariaGUI extends JFrame {
     private JSpinner spinnerHora;
 
     public PizzariaGUI() {
-        setTitle("Pizzaria Java");
+        setTitle("Pizzaria do Carlos");
         setSize(800, 600);
         setDefaultCloseOperation(EXIT_ON_CLOSE);
         setLocationRelativeTo(null);

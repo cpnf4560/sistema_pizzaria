@@ -10,6 +10,7 @@ class Encomenda {
     this.hora_entrega = data.hora_entrega;
     this.taxa_entrega = data.taxa_entrega;
     this.observacoes = data.observacoes;
+    this.metodo_pagamento = data.metodo_pagamento || 'entrega';
     this.total = data.total;
     this.status = data.status || 'Pendente';
     this.estado = data.estado || 'pendente';
@@ -19,9 +20,11 @@ class Encomenda {
 
   static async getAll(filters = {}) {
     try {
+      console.log('📦 [Encomenda.getAll] Filtros recebidos:', filters);
+      
       let sql = `
         SELECT e.*, c.nome as cliente_nome, c.telefone, c.morada,
-               SUM(ep.preco_unitario * ep.quantidade) + COALESCE(e.taxa_entrega, 0) as total_calculado
+               SUM(ep.preco) + COALESCE(e.taxa_entrega, 0) as total_calculado
         FROM encomendas e 
         LEFT JOIN clientes c ON e.cliente_id = c.id
         LEFT JOIN encomenda_pizzas ep ON e.id = ep.encomenda_id
@@ -56,15 +59,56 @@ class Encomenda {
 
       sql += ' GROUP BY e.id ORDER BY e.data_hora DESC';
 
-      const [rows] = await pool.execute(sql, params);
-      return rows.map(row => new Encomenda({
-        ...row,
-        cliente: {
-          nome: row.cliente_nome,
-          telefone: row.telefone,
-          morada: row.morada
+      console.log('📦 [Encomenda.getAll] SQL:', sql);
+      console.log('📦 [Encomenda.getAll] Params:', params);
+      
+      try {
+        const [rows] = await pool.execute(sql, params);
+        console.log('📦 [Encomenda.getAll] Rows encontradas:', rows.length);
+        console.log('📦 [Encomenda.getAll] Primeira row:', rows[0] || 'NENHUMA');
+        
+        const encomendas = [];
+        
+        // Processar cada encomenda e carregar suas pizzas
+        for (const row of rows) {
+          const encomenda = new Encomenda({
+            ...row,
+            cliente: {
+              nome: row.cliente_nome,
+              telefone: row.telefone,
+              morada: row.morada
+            }
+          });
+          
+          // Buscar pizzas desta encomenda
+          const [pizzaRows] = await pool.execute(`
+            SELECT ep.*, p.nome as pizza_nome, p.descricao
+            FROM encomenda_pizzas ep
+            JOIN pizza p ON ep.pizza_id = p.id
+            WHERE ep.encomenda_id = ?
+          `, [row.id]);
+          
+          encomenda.pizzas = pizzaRows.map(pizza => ({
+            id: pizza.id,
+            pizza_id: pizza.pizza_id,
+            nome: pizza.pizza_nome,
+            descricao: pizza.descricao,
+            tamanho: pizza.tamanho,
+            quantidade: 1, // Default já que não temos este campo
+            preco_unitario: parseFloat(pizza.preco),
+            subtotal: parseFloat(pizza.preco)
+          }));
+          
+          console.log(`📦 [Encomenda.getAll] Encomenda ${row.id}: ${pizzaRows.length} pizzas carregadas`);
+          encomendas.push(encomenda);
         }
-      }));
+        
+        console.log('📦 [Encomenda.getAll] Resultado final:', encomendas.length, 'encomendas');
+        return encomendas;
+      } catch (queryError) {
+        console.error('📦 [Encomenda.getAll] Erro na query:', queryError.message);
+        throw queryError;
+      }
     } catch (error) {
       throw new Error('Erro ao listar encomendas: ' + error.message);
     }
@@ -74,7 +118,7 @@ class Encomenda {
     try {
       const [rows] = await pool.execute(`
         SELECT e.*, c.nome as cliente_nome, c.telefone, c.morada, c.email,
-               SUM(ep.preco_unitario * ep.quantidade) + COALESCE(e.taxa_entrega, 0) as total_calculado
+               SUM(ep.preco) + COALESCE(e.taxa_entrega, 0) as total_calculado
         FROM encomendas e 
         LEFT JOIN clientes c ON e.cliente_id = c.id
         LEFT JOIN encomenda_pizzas ep ON e.id = ep.encomenda_id
@@ -108,9 +152,9 @@ class Encomenda {
         nome: pizza.pizza_nome,
         descricao: pizza.descricao,
         tamanho: pizza.tamanho,
-        quantidade: pizza.quantidade,
-        preco_unitario: parseFloat(pizza.preco_unitario),
-        subtotal: parseFloat(pizza.subtotal)
+        quantidade: 1, // Default já que não temos este campo
+        preco_unitario: parseFloat(pizza.preco),
+        subtotal: parseFloat(pizza.preco)
       }));
 
       return encomenda;
@@ -121,49 +165,115 @@ class Encomenda {
 
   static async create(encomendaData) {
     const connection = await pool.getConnection();
+    
+    // LOG 1: Dados recebidos
+    console.log('📝 === INÍCIO CRIAÇÃO ENCOMENDA ===');
+    console.log('📊 Dados recebidos:', JSON.stringify(encomendaData, null, 2));
     console.log('🛢️ Conectado à base de dados:', connection.config.database);
+    
     try {
       await connection.beginTransaction();
+      console.log('🔄 Transação iniciada');
 
-      const { cliente_id, tipo_entrega, observacoes, pizzas, hora_entrega } = encomendaData;
+      const { cliente_id, tipo_entrega, observacoes, metodo_pagamento, pizzas, hora_entrega } = encomendaData;
+      
+      // LOG 2: Validações
+      console.log('🔍 Validando dados...');
+      console.log('👤 Cliente ID:', cliente_id);
+      console.log('🚚 Tipo entrega:', tipo_entrega);
+      console.log('💳 Método pagamento:', metodo_pagamento);
+      console.log('📝 Observações:', observacoes);
+      console.log('🍕 Pizzas:', pizzas?.length || 0);
+      console.log('⏰ Hora entrega:', hora_entrega);
+      
+      // Verificar se cliente existe
+      const [clienteCheck] = await connection.execute(
+        'SELECT id, nome FROM clientes WHERE id = ?',
+        [cliente_id]
+      );
+      console.log('👤 Cliente encontrado:', clienteCheck[0]?.nome || 'NÃO ENCONTRADO');
+      
+      if (!clienteCheck[0]) {
+        throw new Error(`Cliente com ID ${cliente_id} não existe na base de dados`);
+      }
       
       // Calcular total
       let total = 0;
       pizzas.forEach(pizza => {
         const preco = parseFloat(pizza.preco || 0);
         total += preco;
+        console.log(`🍕 Pizza: ${pizza.nome} - €${preco}`);
       });
 
       // Taxa de entrega
       let taxa_entrega = 0;
-      if (tipo_entrega === 'domicilio') {
+      if (tipo_entrega === 'entrega') {
         taxa_entrega = 3.90;
         total += taxa_entrega;
       }
+      console.log('💰 Total calculado: €' + total.toFixed(2));
 
-      // Inserir encomenda SEM campo total (que pode não existir)
-      const [result] = await connection.execute(
-        'INSERT INTO encomendas (cliente_id, data_hora, tipo_entrega, hora_entrega, taxa_entrega, observacoes, status, estado) VALUES (?, NOW(), ?, ?, ?, ?, ?, ?)',
-        [cliente_id, tipo_entrega, hora_entrega, taxa_entrega, observacoes, 'Pendente', 'pendente']
-      );
+      // LOG 3: Query de inserção - sem metodo_pagamento
+      const insertQuery = 'INSERT INTO encomendas (cliente_id, data_hora, tipo_entrega, hora_entrega, taxa_entrega, observacoes, estado) VALUES (?, NOW(), ?, ?, ?, ?, ?)';
+      const insertParams = [cliente_id, tipo_entrega, hora_entrega, taxa_entrega, observacoes, 'pendente'];
+      
+      console.log('📝 Query:', insertQuery);
+      console.log('📝 Parâmetros:', insertParams);
 
+      // Inserir encomenda
+      const [result] = await connection.execute(insertQuery, insertParams);
       const encomendaId = result.insertId;
       console.log('✅ Encomenda criada com ID:', encomendaId);
+      console.log('📊 Result object:', { insertId: result.insertId, affectedRows: result.affectedRows });
 
-      // Inserir pizzas - VERSÃO SUPER SIMPLES
-      for (const pizza of pizzas) {     
+      // LOG 4: Inserir pizzas - VERSÃO COM LOGS DETALHADOS
+      console.log('🍕 === INSERINDO PIZZAS ===');
+      for (let i = 0; i < pizzas.length; i++) {
+        const pizza = pizzas[i];
         const preco = parseFloat(pizza.preco || 7.00);   
-        console.log('🍕 Inserindo pizza:', pizza.pizza_id, pizza.tamanho, preco);
+        console.log(`🍕 Pizza ${i+1}/${pizzas.length}:`, {
+          pizza_id: pizza.pizza_id,
+          nome: pizza.nome,
+          tamanho: pizza.tamanho,
+          preco: preco
+        });
         
-        // Tentar inserção mais básica possível
-        await connection.execute(
-          'INSERT INTO encomenda_pizzas (encomenda_id, pizza_id, tamanho, quantidade, preco_unitario, subtotal) VALUES (?, ?, ?, 1, ?, ?)',
-          [encomendaId, pizza.pizza_id, pizza.tamanho, preco, preco]
-        );
+        // Query adaptada para a estrutura real da tabela (sem quantidade, preco_unitario, subtotal)
+        const quantidade = pizza.quantidade || 1;
+        const pizzaQuery = 'INSERT INTO encomenda_pizzas (encomenda_id, pizza_id, tamanho, preco) VALUES (?, ?, ?, ?)';
+        const pizzaParams = [encomendaId, pizza.pizza_id, pizza.tamanho, preco];
+        
+        console.log('📝 Pizza Query:', pizzaQuery);
+        console.log('📝 Pizza Params:', pizzaParams);
+        
+        try {
+          const [pizzaResult] = await connection.execute(pizzaQuery, pizzaParams);
+          console.log(`✅ Pizza ${i+1} inserida - ID: ${pizzaResult.insertId}`);
+        } catch (pizzaError) {
+          console.error(`❌ Erro ao inserir pizza ${i+1}:`, pizzaError.message);
+          throw pizzaError;
+        }
       }
 
+      // LOG 5: Commit
+      console.log('💾 Fazendo commit da transação...');
       await connection.commit();
-      console.log('✅ Transação confirmada');
+      console.log('✅ Transação confirmada com sucesso');
+      
+      // LOG 6: Verificação final
+      const [verificacao] = await connection.execute(
+        'SELECT COUNT(*) as total FROM encomendas WHERE id = ?',
+        [encomendaId]
+      );
+      console.log('🔍 Verificação: encomenda existe na BD:', verificacao[0].total > 0);
+      
+      const [pizzasVerif] = await connection.execute(
+        'SELECT COUNT(*) as total FROM encomenda_pizzas WHERE encomenda_id = ?',
+        [encomendaId]
+      );
+      console.log('🔍 Verificação: pizzas inseridas:', pizzasVerif[0].total);
+      
+      console.log('🎉 === ENCOMENDA CRIADA COM SUCESSO ===');
       
       return {
         id: encomendaId,
@@ -178,11 +288,18 @@ class Encomenda {
       };
 
     } catch (error) {
+      console.log('🔄 Fazendo rollback da transação...');
       await connection.rollback();
-      console.error('❌ Erro na criação:', error);
+      console.error('❌ === ERRO NA CRIAÇÃO DA ENCOMENDA ===');
+      console.error('❌ Tipo:', error.constructor.name);
+      console.error('❌ Mensagem:', error.message);
+      console.error('❌ Stack:', error.stack);
+      console.error('❌ === FIM DO ERRO ===');
       throw new Error('Erro ao criar encomenda: ' + error.message);
     } finally {
+      console.log('🔗 Libertando conexão...');
       connection.release();
+      console.log('📝 === FIM CRIAÇÃO ENCOMENDA ===\n');
     }
   }
 
@@ -195,6 +312,69 @@ class Encomenda {
       return await Encomenda.findById(id);
     } catch (error) {
       throw new Error('Erro ao atualizar status da encomenda: ' + error.message);
+    }
+  }
+
+  // Buscar encomendas por email do cliente
+  static async findByClienteEmail(email) {
+    try {
+      const sql = `
+        SELECT e.*, 
+               c.nome as cliente_nome, 
+               c.telefone, 
+               c.morada, 
+               c.email as cliente_email,
+               e.data_hora as data_encomenda,
+               SUM(ep.preco) + COALESCE(e.taxa_entrega, 0) as total
+        FROM encomendas e 
+        LEFT JOIN clientes c ON e.cliente_id = c.id
+        LEFT JOIN encomenda_pizzas ep ON e.id = ep.encomenda_id
+        WHERE c.email = ?
+        GROUP BY e.id
+        ORDER BY e.data_hora DESC
+      `;
+
+      const [rows] = await pool.execute(sql, [email]);
+      
+      const encomendas = [];
+      for (const row of rows) {
+        // Buscar pizzas da encomenda
+        const pizzasSql = `
+          SELECT ep.*, p.nome, p.descricao
+          FROM encomenda_pizzas ep
+          JOIN pizza p ON ep.pizza_id = p.id
+          WHERE ep.encomenda_id = ?
+        `;
+        const [pizzasRows] = await pool.execute(pizzasSql, [row.id]);
+        
+        encomendas.push({
+          id: row.id,
+          data_encomenda: row.data_encomenda,
+          total: parseFloat(row.total || 0),
+          tipo_entrega: row.tipo_entrega,
+          hora_entrega: row.hora_entrega,
+          observacoes: row.observacoes,
+          status: row.status || row.estado,
+          cliente: {
+            nome: row.cliente_nome,
+            email: row.cliente_email,
+            telefone: row.telefone,
+            morada: row.morada
+          },
+          pizzas: pizzasRows.map(pizza => ({
+            nome: pizza.nome,
+            descricao: pizza.descricao,
+            tamanho: pizza.tamanho,
+            quantidade: 1, // Default já que não temos este campo
+            preco: parseFloat(pizza.preco || 0)
+          }))
+        });
+      }
+
+      return encomendas;
+    } catch (error) {
+      console.error('❌ Erro ao buscar encomendas por email:', error);
+      throw error;
     }
   }
 

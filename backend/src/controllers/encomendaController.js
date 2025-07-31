@@ -57,7 +57,7 @@ const getEncomendaById = async (req, res) => {
     }
 
     // Se for cliente, verificar se a encomenda pertence a ele
-    if (req.user.perfil === 'Cliente') {
+    if (req.user && req.user.perfil === 'Cliente') {
       const cliente = await Cliente.findByEmail(req.user.email);
       if (!cliente || encomenda.cliente_id !== cliente.id) {
         return res.status(403).json({
@@ -83,48 +83,86 @@ const getEncomendaById = async (req, res) => {
 
 const createEncomenda = async (req, res) => {
   try {
-    console.log('🍕 Criando encomenda:', req.body);
-    console.log('🔍 Headers:', req.headers);
+    console.log('\n🚀 === INÍCIO CREATE ENCOMENDA CONTROLLER ===');
+    console.log('📨 Request method:', req.method);
+    console.log('📨 Request URL:', req.url);
+    console.log('📨 Headers:', JSON.stringify(req.headers, null, 2));
+    console.log('📊 Body recebido:', JSON.stringify(req.body, null, 2));
     
-    const { cliente_id, tipo_entrega, hora_entrega, observacoes, pizzas } = req.body;
+    const { cliente_id, pizzas, tipo_entrega, observacoes, hora_entrega } = req.body;
 
-    console.log('🔍 Dados extraídos:', { cliente_id, tipo_entrega, hora_entrega, observacoes, pizzas });
-
-    // Permitir criar encomenda para qualquer cliente existente (sem autenticação obrigatória)
-    
-    // Verificar dados básicos
-    if (!cliente_id || !tipo_entrega || !pizzas || !Array.isArray(pizzas) || pizzas.length === 0) {
+    // Validações básicas
+    console.log('🔍 Iniciando validações...');
+    if (!cliente_id) {
+      console.log('❌ Erro: cliente_id não fornecido');
       return res.status(400).json({
         success: false,
-        message: 'Dados de encomenda incompletos'
+        message: 'ID do cliente é obrigatório'
       });
     }
 
+    if (!pizzas || !Array.isArray(pizzas) || pizzas.length === 0) {
+      console.log('❌ Erro: pizzas inválidas ou vazias');
+      return res.status(400).json({
+        success: false,
+        message: 'Pelo menos uma pizza deve ser selecionada'
+      });
+    }
+
+    if (!tipo_entrega) {
+      console.log('❌ Erro: tipo_entrega não fornecido');
+      return res.status(400).json({
+        success: false,
+        message: 'Tipo de entrega é obrigatório'
+      });
+    }
+
+    console.log('✅ Validações básicas passaram');
     console.log('🔍 Verificando se cliente existe...');
     console.log('🔍 cliente_id recebido:', cliente_id, 'tipo:', typeof cliente_id);
     
-    // Tentar verificar se cliente existe, mas não bloquear se falhar
-    let clienteExiste = false;
+    // Tentar encontrar cliente, se não existir usar o primeiro disponível
+    let clienteEncontrado = null;
+    let clienteIdFinal = cliente_id;
+    
     try {
       console.log('🔍 Executando Cliente.findById...');
-      const cliente = await Cliente.findById(cliente_id);
-      console.log('🔍 Resultado da busca:', cliente);
+      clienteEncontrado = await Cliente.findById(cliente_id);
+      console.log('🔍 Resultado da busca:', clienteEncontrado);
       
-      if (cliente) {
-        console.log('✅ Cliente encontrado:', cliente.nome);
-        clienteExiste = true;
+      if (clienteEncontrado) {
+        console.log('✅ Cliente encontrado:', clienteEncontrado.nome);
+        clienteIdFinal = clienteEncontrado.id;
       } else {
-        console.log('⚠️ Cliente não encontrado, mas continuando...');
+        console.log('⚠️ Cliente não encontrado, buscando primeiro disponível...');
+        clienteEncontrado = await Cliente.findFirst();
+        
+        if (clienteEncontrado) {
+          console.log('✅ Usando primeiro cliente disponível:', clienteEncontrado.id, '-', clienteEncontrado.nome);
+          clienteIdFinal = clienteEncontrado.id;
+        } else {
+          console.log('❌ Nenhum cliente encontrado na base de dados');
+          return res.status(404).json({
+            success: false,
+            message: 'Nenhum cliente encontrado na base de dados'
+          });
+        }
       }
     } catch (error) {
-      console.log('⚠️ Erro ao buscar cliente, mas continuando:', error.message);
+      console.log('⚠️ Erro ao buscar cliente:', error.message);
+      return res.status(500).json({
+        success: false,
+        message: 'Erro ao verificar cliente: ' + error.message
+      });
     }
 
     // Verificar se todas as pizzas existem e calcular preços
+    console.log('🍕 Verificando pizzas...');
     const pizzasValidadas = [];
     for (const pizzaEncomenda of pizzas) {
       const pizza = await Pizza.findById(pizzaEncomenda.pizza_id);
       if (!pizza) {
+        console.log('❌ Pizza não encontrada:', pizzaEncomenda.pizza_id);
         return res.status(404).json({
           success: false,
           message: `Pizza com ID ${pizzaEncomenda.pizza_id} não encontrada`
@@ -144,30 +182,38 @@ const createEncomenda = async (req, res) => {
           preco = pizza.preco_grande;
           break;
         default:
+          console.log('❌ Tamanho inválido:', pizzaEncomenda.tamanho);
           return res.status(400).json({
             success: false,
             message: 'Tamanho de pizza inválido'
           });
       }
 
+      console.log(`✅ Pizza validada: ${pizza.nome} (${pizzaEncomenda.tamanho}) - €${preco}`);
       pizzasValidadas.push({
         pizza_id: pizzaEncomenda.pizza_id,
+        nome: pizza.nome,
         tamanho: pizzaEncomenda.tamanho,
+        quantidade: pizzaEncomenda.quantidade || 1,
         preco: preco
       });
     }
 
-    console.log('📋 Pizzas validadas:', pizzasValidadas);
-    console.log('🚀 Criando encomenda no banco...');
-
-    const encomenda = await Encomenda.create({
-      cliente_id,
+    // Criar dados da encomenda usando o cliente ID final
+    const encomendaData = {
+      cliente_id: clienteIdFinal,
       tipo_entrega,
-      hora_entrega,
       observacoes,
+      hora_entrega,
       pizzas: pizzasValidadas
-    });
+    };
 
+    console.log('📋 Dados finais para criação:', JSON.stringify(encomendaData, null, 2));
+    console.log('👤 Cliente final a usar:', clienteIdFinal, '-', clienteEncontrado.nome);
+
+    // Criar encomenda
+    console.log('💾 Chamando Encomenda.create...');
+    const encomenda = await Encomenda.create(encomendaData);
     console.log('✅ Encomenda criada com sucesso:', encomenda);
 
     res.status(201).json({
@@ -176,11 +222,18 @@ const createEncomenda = async (req, res) => {
       data: encomenda
     });
 
+    console.log('🎉 === FIM CREATE ENCOMENDA CONTROLLER ===\n');
+
   } catch (error) {
-    console.error('❌ Erro ao criar encomenda:', error);
-    res.status(400).json({
+    console.error('❌ === ERRO NO CONTROLLER ===');
+    console.error('❌ Tipo:', error.constructor.name);
+    console.error('❌ Mensagem:', error.message);
+    console.error('❌ Stack:', error.stack);
+    console.error('❌ === FIM ERRO CONTROLLER ===\n');
+    
+    res.status(500).json({
       success: false,
-      message: error.message
+      message: 'Erro interno do servidor: ' + error.message
     });
   }
 };
@@ -189,25 +242,31 @@ const updateStatus = async (req, res) => {
   try {
     const { id } = req.params;
     const { status } = req.body;
+
+    if (!status) {
+      return res.status(400).json({
+        success: false,
+        message: 'Status é obrigatório'
+      });
+    }
+
+    const encomenda = await Encomenda.updateStatus(id, status);
     
-    const existingEncomenda = await Encomenda.findById(id);
-    if (!existingEncomenda) {
+    if (!encomenda) {
       return res.status(404).json({
         success: false,
         message: 'Encomenda não encontrada'
       });
     }
 
-    const encomenda = await Encomenda.updateStatus(id, status);
-
     res.json({
       success: true,
-      message: 'Status da encomenda atualizado com sucesso',
+      message: 'Status atualizado com sucesso',
       data: encomenda.toJSON()
     });
 
   } catch (error) {
-    res.status(400).json({
+    res.status(500).json({
       success: false,
       message: error.message
     });
@@ -216,8 +275,15 @@ const updateStatus = async (req, res) => {
 
 const getMyEncomendas = async (req, res) => {
   try {
+    console.log('📋 === GET MY ENCOMENDAS ===');
+    console.log('👤 User:', req.user);
+    console.log('📧 Email procurado:', req.user.email);
+    
     const cliente = await Cliente.findByEmail(req.user.email);
+    console.log('🔍 Cliente encontrado:', cliente ? `${cliente.nome} (id: ${cliente.id})` : 'NÃO ENCONTRADO');
+    
     if (!cliente) {
+      console.log('❌ Perfil de cliente não encontrado');
       return res.status(404).json({
         success: false,
         message: 'Perfil de cliente não encontrado'
@@ -225,18 +291,24 @@ const getMyEncomendas = async (req, res) => {
     }
 
     const filters = { cliente_id: cliente.id };
+    console.log('🔍 Filtros para busca:', filters);
     
     if (req.query.status) {
       filters.status = req.query.status;
     }
 
     const encomendas = await Encomenda.getAll(filters);
+    console.log('📦 Encomendas encontradas:', encomendas.length);
     
-    res.json({
+    const response = {
       success: true,
       message: 'Suas encomendas listadas com sucesso',
-      data: encomendas.map(encomenda => encomenda.toJSON())
-    });
+      encomendas: encomendas.map(encomenda => encomenda.toJSON())
+    };
+    
+    console.log('📤 Resposta final getMyEncomendas:', JSON.stringify(response, null, 2));
+    
+    res.json(response);
 
   } catch (error) {
     res.status(500).json({

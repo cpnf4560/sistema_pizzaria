@@ -4,7 +4,7 @@
  */
 
 // Configuração da API
-const API_BASE = 'http://localhost:3000/api';
+const API_BASE = 'http://localhost:3000';
 let authToken = localStorage.getItem('pizzaria_token') || '';
 let currentUser = null;
 
@@ -63,6 +63,13 @@ const tamanhos = ["Pequena", "Média", "Grande"];
 document.addEventListener('DOMContentLoaded', function() {
     console.log('📄 DOM carregado, iniciando app...');
     
+    // Garantir que o pop-up de pagamento está escondido
+    const popupPagamento = document.getElementById('popup-pagamento');
+    if (popupPagamento) {
+        popupPagamento.style.display = 'none';
+        console.log('🚫 Pop-up de pagamento forçado a esconder');
+    }
+    
     // Verificar se elementos existem
     const pizzasContainer = $("pizzas");
     console.log('🍕 Container pizzas:', pizzasContainer ? 'encontrado' : 'NÃO ENCONTRADO');
@@ -108,7 +115,7 @@ async function initializeApp() {
     
     try {
         console.log('🧪 Carregando pizzas da API...');
-        const response = await fetch(`${API_BASE}/pizzas`);
+        const response = await fetch(`${API_BASE}/api/pizzas`);
         console.log('📡 Status da resposta:', response.status);
         
         if (response.ok) {
@@ -145,7 +152,7 @@ async function initializeApp() {
 async function loadPizzas() {
     console.log('🍕 Fazendo chamada para API de pizzas...');
     try {
-        const response = await apiCall('/pizzas');
+        const response = await apiCall('/api/pizzas');
         pizzas = response.data || [];
         console.log('✅ Pizzas recebidas da API:', pizzas.length, 'pizzas');
         console.log('📋 Dados das pizzas:', pizzas);
@@ -277,7 +284,7 @@ function renderCarrinho() {
     container.innerHTML = html || "<i>Carrinho vazio</i>";
     
     const entrega = document.querySelector('input[name="entrega"]:checked')?.value;
-    if (entrega === "domicilio") total += 3.90;
+    if (entrega === "entrega") total += 3.90;
     
     totalContainer.innerText = `Total: ${total.toFixed(2)} € (IVA incl.)`;
 }
@@ -286,7 +293,7 @@ function renderCarrinho() {
 async function saveCliente(clienteData) {
     try {
         console.log('Salvando cliente:', clienteData);
-        const response = await apiCall('/clientes', {
+        const response = await apiCall('/api/clientes', {
             method: 'POST',
             body: JSON.stringify(clienteData)
         });
@@ -311,7 +318,7 @@ async function criarEncomenda(encomendaData) {
     try {
         console.log('🍕 Criando encomenda:', encomendaData);
         
-        const response = await fetch(`${API_BASE}/encomendas`, {
+        const response = await fetch(`${API_BASE}/api/encomendas`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -354,7 +361,7 @@ async function criarEncomenda(encomendaData) {
 function gerarFicheiroEncomenda(dados, encomenda) {
     try {
         const agora = new Date();
-        const conteudo = `PIZZARIA JAVA - ENCOMENDA #${encomenda.id}
+        const conteudo = `PIZZARIA DO CARLOS - ENCOMENDA #${encomenda.id}
 ======================================
 
 Data: ${agora.toLocaleDateString('pt-PT')}
@@ -367,7 +374,7 @@ Telefone: ${dados.cliente.telefone}
 Email: ${dados.cliente.email}
 
 ENCOMENDA:
-Tipo de Entrega: ${dados.tipo_entrega === 'domicilio' ? 'Entrega ao Domicílio' : 'Recolha no Restaurante'}
+Tipo de Entrega: ${dados.tipo_entrega === 'entrega' ? 'Entrega ao Domicílio' : 'Recolha no Restaurante'}
 Hora de Entrega/Recolha: ${dados.hora_entrega}
 ${dados.observacoes ? 'Observações: ' + dados.observacoes : ''}
 
@@ -429,6 +436,11 @@ function setupEventListeners() {
                 $("pagina-cliente").classList.add("hidden");
                 $("pagina-menu").classList.remove("hidden");
                 
+                // Esconder botões do header quando entrar no menu
+                if (window.loginSystem && typeof window.loginSystem.controlHeaderButtons === 'function') {
+                    window.loginSystem.controlHeaderButtons(false);
+                }
+                
                 // Forçar renderização das pizzas
                 console.log('🍕 Forçando renderização das pizzas...');
                 renderPizzas();
@@ -453,12 +465,18 @@ function setupEventListeners() {
                 return;
             }
             
+            if (!cliente || !cliente.id) {
+                showError("Dados do cliente não encontrados. Por favor, preencha os dados do cliente primeiro.");
+                return;
+            }
+            
             console.log('Carrinho:', carrinho);
             console.log('Cliente:', cliente);
             
             const entrega = document.querySelector('input[name="entrega"]:checked').value;
             const hora = $("hora").value;
             const observacoes = $("observacoes").value.trim();
+            const metodoPagamento = document.querySelector('input[name="metodo_pagamento"]:checked').value;
             
             // Calcular total
             let total = 0;
@@ -470,7 +488,7 @@ function setupEventListeners() {
                 ];
                 total += precos[item.tamanhoIdx] * item.qtd;
             });
-            if (entrega === "domicilio") total += 3.90;
+            if (entrega === "entrega") total += 3.90;
             
             const encomendaData = {
                 cliente_id: cliente.id,
@@ -478,6 +496,7 @@ function setupEventListeners() {
                 tipo_entrega: entrega,
                 hora_entrega: hora,
                 observacoes: observacoes,
+                metodo_pagamento: metodoPagamento,
                 total: total,
                 pizzas: carrinho.map(item => {
                     const precos = [
@@ -489,21 +508,50 @@ function setupEventListeners() {
                         pizza_id: item.id,
                         tamanho: tamanhos[item.tamanhoIdx],
                         quantidade: item.qtd,
-                        preco_unitario: precos[item.tamanhoIdx]
+                        preco: precos[item.tamanhoIdx]
                     };
                 })
             };
             
             console.log('Dados da encomenda:', encomendaData);
             
-            try {
-                await criarEncomenda(encomendaData);
-                $("pagina-menu").classList.add("hidden");
-                $("pagina-finalizar").classList.remove("hidden");
-                showSuccess("Encomenda registada com sucesso!");
-            } catch (error) {
-                console.error('Erro detalhado:', error);
-                showError("Erro ao criar encomenda: " + error.message);
+            // Mostrar pop-up de confirmação para pré-pagamentos
+            if (metodoPagamento === 'mbway' || metodoPagamento === 'multibanco') {
+                mostrarPopupPagamento(metodoPagamento, total, async () => {
+                    // Callback para quando o utilizador confirmar o pagamento
+                    try {
+                        await criarEncomenda(encomendaData);
+                        $("pagina-menu").classList.add("hidden");
+                        $("pagina-finalizar").classList.remove("hidden");
+                        
+                        // Mostrar botões do header novamente quando sair do menu
+                        if (window.loginSystem && typeof window.loginSystem.controlHeaderButtons === 'function') {
+                            window.loginSystem.controlHeaderButtons(true);
+                        }
+                        
+                        showSuccess("Encomenda registada com sucesso!");
+                    } catch (error) {
+                        console.error('Erro detalhado:', error);
+                        showError("Erro ao criar encomenda: " + error.message);
+                    }
+                });
+            } else {
+                // Para pagamento na entrega, proceder diretamente
+                try {
+                    await criarEncomenda(encomendaData);
+                    $("pagina-menu").classList.add("hidden");
+                    $("pagina-finalizar").classList.remove("hidden");
+                    
+                    // Mostrar botões do header novamente quando sair do menu
+                    if (window.loginSystem && typeof window.loginSystem.controlHeaderButtons === 'function') {
+                        window.loginSystem.controlHeaderButtons(true);
+                    }
+                    
+                    showSuccess("Encomenda registada com sucesso!");
+                } catch (error) {
+                    console.error('Erro detalhado:', error);
+                    showError("Erro ao criar encomenda: " + error.message);
+                }
             }
         };
     } else {
@@ -617,3 +665,94 @@ function setupPhoneInput() {
         this.setSelectionRange(5 + cursorPos + digits.length, 5 + cursorPos + digits.length);
     });
 }
+
+// Função para mostrar pop-up de pagamento
+function mostrarPopupPagamento(metodoPagamento, total, callback) {
+    const popup = document.getElementById('popup-pagamento');
+    const conteudo = document.getElementById('popup-conteudo');
+    
+    let titulo, mensagem, logo;
+    
+    if (metodoPagamento === 'mbway') {
+        titulo = 'Pagamento MB WAY';
+        mensagem = `
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; color: #FF6B35; margin-bottom: 15px;">📱</div>
+                <h3>MB WAY</h3>
+                <p>Total a pagar: <strong>${total.toFixed(2)}€</strong></p>
+                <p>Por favor, abra a aplicação MB WAY no seu telemóvel e efetue o pagamento.</p>
+                <p>Após confirmar o pagamento, clique em "Confirmar Pagamento".</p>
+            </div>
+        `;
+    } else if (metodoPagamento === 'multibanco') {
+        titulo = 'Pagamento Multibanco';
+        mensagem = `
+            <div style="text-align: center; padding: 20px;">
+                <div style="font-size: 48px; color: #0066CC; margin-bottom: 15px;">💳</div>
+                <h3>Multibanco</h3>
+                <p>Total a pagar: <strong>${total.toFixed(2)}€</strong></p>
+                <p>Referência Multibanco:</p>
+                <div style="background: #f0f0f0; padding: 15px; margin: 10px 0; border-radius: 5px;">
+                    <strong>Entidade:</strong> 12345<br>
+                    <strong>Referência:</strong> 123 456 789<br>
+                    <strong>Valor:</strong> ${total.toFixed(2)}€
+                </div>
+                <p>Após efetuar o pagamento, clique em "Confirmar Pagamento".</p>
+            </div>
+        `;
+    }
+    
+    conteudo.innerHTML = `
+        <div class="popup-header">
+            <h2>${titulo}</h2>
+            <button class="popup-fechar" onclick="fecharPopupPagamento()">&times;</button>
+        </div>
+        <div class="popup-body">
+            ${mensagem}
+        </div>
+        <div class="popup-footer">
+            <button class="btn-cancelar" onclick="fecharPopupPagamento()">Cancelar</button>
+            <button class="btn-confirmar" onclick="confirmarPagamento()">Confirmar Pagamento</button>
+        </div>
+    `;
+    
+    // Guardar o callback para usar quando confirmar
+    window.callbackPagamento = callback;
+    
+    popup.style.display = 'flex';
+}
+
+// Função para fechar o pop-up
+function fecharPopupPagamento() {
+    const popup = document.getElementById('popup-pagamento');
+    popup.style.display = 'none';
+    window.callbackPagamento = null;
+}
+
+// Função para confirmar o pagamento
+function confirmarPagamento() {
+    if (window.callbackPagamento) {
+        window.callbackPagamento();
+        fecharPopupPagamento();
+    }
+}
+
+// Event listeners para os métodos de pagamento
+document.addEventListener('DOMContentLoaded', function() {
+    const radiosPagamento = document.querySelectorAll('input[name="metodo_pagamento"]');
+    radiosPagamento.forEach(radio => {
+        radio.addEventListener('change', function() {
+            console.log('Método de pagamento selecionado:', this.value);
+        });
+    });
+    
+    // Fechar popup ao clicar fora dele
+    const popup = document.getElementById('popup-pagamento');
+    if (popup) {
+        popup.addEventListener('click', function(e) {
+            if (e.target === popup) {
+                fecharPopupPagamento();
+            }
+        });
+    }
+});

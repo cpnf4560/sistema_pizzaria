@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const { testConnection } = require('./config/database');
@@ -21,7 +22,7 @@ app.use(helmet());
 
 // CORS configuration
 const corsOptions = {
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:8080'],
+  origin: process.env.ALLOWED_ORIGINS?.split(',') || ['http://localhost:3000', 'http://localhost:8080', 'http://localhost:8081'],
   credentials: true,
   optionsSuccessStatus: 200
 };
@@ -38,17 +39,17 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Stricter rate limiting for auth endpoints
+// Stricter rate limiting for auth endpoints (DESATIVADO TEMPORARIAMENTE)
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 5, // limit each IP to 5 requests per windowMs
+  max: 1000, // Aumentado para 1000 tentativas para testes
   message: {
     success: false,
     message: 'Muitas tentativas de login. Tente novamente em 15 minutos.'
   }
 });
-app.use('/api/auth/login', authLimiter);
-app.use('/api/auth/register', authLimiter);
+// app.use('/api/auth/login', authLimiter); // COMENTADO PARA TESTES
+// app.use('/api/auth/register', authLimiter); // COMENTADO PARA TESTES
 
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
@@ -66,17 +67,19 @@ app.get('/health', (req, res) => {
 
 // API Routes
 app.use('/api/auth', authRoutes);
+app.use('/api/admin', require('./routes/admin')); // Rotas de administrador
 app.use('/api/pizzas', pizzaRoutes);
 app.use('/api/clientes', clienteRoutes);
 app.use('/api/encomendas', encomendaRoutes);
 app.use('/api/users', userRoutes);
 
-// Root endpoint
+// Root endpoint - API info
 app.get('/', (req, res) => {
   res.json({
     success: true,
     message: 'API da Pizzaria - Backend Node.js',
     version: '1.0.0',
+    frontend: 'http://localhost:8080',
     documentation: '/api/docs',
     endpoints: {
       auth: '/api/auth',

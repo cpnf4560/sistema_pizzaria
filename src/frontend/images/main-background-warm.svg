@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <!-- Gradiente base em tons quentes -->
+    <radialGradient id="warmBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" style="stop-color:#fff3e0;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#ffeaa7;stop-opacity:0.1"/>
+    </radialGradient>
+    
+    <!-- Padrão geométrico em tons alaranjados -->
+    <pattern id="warmPattern" x="0" y="0" width="150" height="150" patternUnits="userSpaceOnUse">
+      <circle cx="75" cy="75" r="3" fill="#ff9800" opacity="0.12"/>
+      <circle cx="25" cy="25" r="2" fill="#ffb74d" opacity="0.10"/>
+      <circle cx="125" cy="125" r="2" fill="#ffcc02" opacity="0.08"/>
+      
+      <!-- Linhas decorativas em tons dourados -->
+      <path d="M0,15 Q75,20 150,15" stroke="#ff9800" stroke-width="1" fill="none" opacity="0.12"/>
+      <path d="M0,135 Q75,130 150,135" stroke="#ffb74d" stroke-width="1" fill="none" opacity="0.10"/>
+    </pattern>
+    
+    <!-- Gradientes para elementos em tons quentes -->
+    <radialGradient id="warmGrad1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ff9800;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#ff9800;stop-opacity:0.05"/>
+    </radialGradient>
+    
+    <radialGradient id="warmGrad2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffb74d;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#ffb74d;stop-opacity:0.05"/>
+    </radialGradient>
+    
+    <radialGradient id="warmGrad3" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#ffcc02;stop-opacity:0.15"/>
+      <stop offset="100%" style="stop-color:#ffcc02;stop-opacity:0.04"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Fundo base quente -->
+  <rect width="100%" height="100%" fill="url(#warmBg)"/>
+  
+  <!-- Padrão em tons quentes -->
+  <rect width="100%" height="100%" fill="url(#warmPattern)"/>
+  
+  <!-- Elementos decorativos em tons alaranjados -->
+  <g>
+    <!-- Círculos grandes decorativos -->
+    <circle cx="120" cy="100" r="50" fill="url(#warmGrad1)"/>
+    <circle cx="480" cy="280" r="60" fill="url(#warmGrad2)"/>
+    <circle cx="350" cy="180" r="35" fill="#ffcc02" opacity="0.15"/>
+    
+    <!-- Círculos médios -->
+    <circle cx="80" cy="300" r="30" fill="#ff9800" opacity="0.12"/>
+    <circle cx="520" cy="120" r="25" fill="#ffb74d" opacity="0.15"/>
+    <circle cx="200" cy="350" r="20" fill="#ffa726" opacity="0.10"/>
+  </g>
+  
+  <!-- Formas geométricas em tons dourados -->
+  <g>
+    <!-- Hexágonos mais visíveis -->
+    <polygon points="200,50 220,60 220,80 200,90 180,80 180,60" fill="#ff9800" opacity="0.12"/>
+    <polygon points="450,150 470,160 470,180 450,190 430,180 430,160" fill="#ffb74d" opacity="0.15"/>
+    <polygon points="300,320 320,330 320,350 300,360 280,350 280,330" fill="#ffcc02" opacity="0.10"/>
+    
+    <!-- Losangos dourados -->
+    <polygon points="400,80 420,90 400,100 380,90" fill="#ff9800" opacity="0.10"/>
+    <polygon points="150,250 170,260 150,270 130,260" fill="#ffb74d" opacity="0.12"/>
+  </g>
+  
+  <!-- Ondas decorativas em tons quentes -->
+  <g stroke-width="2" fill="none">
+    <path d="M50 200 Q 150 180 250 200 T 450 200" stroke="#ff9800" opacity="0.12"/>
+    <path d="M100 300 Q 200 280 300 300 T 500 300" stroke="#ffb74d" opacity="0.10"/>
+    <path d="M0 100 Q 100 80 200 100 T 400 100" stroke="#ffcc02" opacity="0.08"/>
+  </g>
+  
+  <!-- Elementos adicionais para textura quente -->
+  <g>
+    <!-- Estrelas pequenas douradas -->
+    <polygon points="150,80 152,85 157,85 153,88 155,93 150,90 145,93 147,88 143,85 148,85" fill="#ffcc02" opacity="0.08"/>
+    <polygon points="500,200 502,205 507,205 503,208 505,213 500,210 495,213 497,208 493,205 498,205" fill="#ff9800" opacity="0.10"/>
+    
+    <!-- Círculos pequenos espalhados -->
+    <circle cx="250" cy="50" r="4" fill="#ffb74d" opacity="0.08"/>
+    <circle cx="50" cy="150" r="6" fill="#ff9800" opacity="0.06"/>
+    <circle cx="550" cy="350" r="5" fill="#ffcc02" opacity="0.08"/>
+  </g>
+</svg>

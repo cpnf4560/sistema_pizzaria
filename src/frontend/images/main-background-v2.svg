@@ -1,0 +1,69 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="400" viewBox="0 0 600 400">
+  <defs>
+    <!-- Gradiente base mais visível -->
+    <radialGradient id="mainBg" cx="50%" cy="50%" r="60%">
+      <stop offset="0%" style="stop-color:#e8f5e8;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#f0f8f0;stop-opacity:0.1"/>
+    </radialGradient>
+    
+    <!-- Padrão geométrico mais definido -->
+    <pattern id="subtlePattern" x="0" y="0" width="150" height="150" patternUnits="userSpaceOnUse">
+      <circle cx="75" cy="75" r="3" fill="#00994d" opacity="0.12"/>
+      <circle cx="25" cy="25" r="2" fill="#00b359" opacity="0.10"/>
+      <circle cx="125" cy="125" r="2" fill="#27ae60" opacity="0.08"/>
+      
+      <!-- Linhas decorativas mais visíveis -->
+      <path d="M0,15 Q75,20 150,15" stroke="#00994d" stroke-width="1" fill="none" opacity="0.12"/>
+      <path d="M0,135 Q75,130 150,135" stroke="#00b359" stroke-width="1" fill="none" opacity="0.10"/>
+    </pattern>
+    
+    <!-- Gradientes para elementos -->
+    <radialGradient id="elementGrad1" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#00994d;stop-opacity:0.2"/>
+      <stop offset="100%" style="stop-color:#00994d;stop-opacity:0.05"/>
+    </radialGradient>
+    
+    <radialGradient id="elementGrad2" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#00b359;stop-opacity:0.18"/>
+      <stop offset="100%" style="stop-color:#00b359;stop-opacity:0.05"/>
+    </radialGradient>
+  </defs>
+  
+  <!-- Fundo base -->
+  <rect width="100%" height="100%" fill="url(#mainBg)"/>
+  
+  <!-- Padrão sutil -->
+  <rect width="100%" height="100%" fill="url(#subtlePattern)"/>
+  
+  <!-- Elementos decorativos grandes mais visíveis -->
+  <g>
+    <!-- Círculos grandes decorativos -->
+    <circle cx="120" cy="100" r="50" fill="url(#elementGrad1)"/>
+    <circle cx="480" cy="280" r="60" fill="url(#elementGrad2)"/>
+    <circle cx="350" cy="180" r="35" fill="#27ae60" opacity="0.15"/>
+    
+    <!-- Círculos médios -->
+    <circle cx="80" cy="300" r="30" fill="#00994d" opacity="0.12"/>
+    <circle cx="520" cy="120" r="25" fill="#00b359" opacity="0.15"/>
+    <circle cx="200" cy="350" r="20" fill="#4caf50" opacity="0.10"/>
+  </g>
+  
+  <!-- Formas geométricas adicionais -->
+  <g>
+    <!-- Hexágonos mais visíveis -->
+    <polygon points="200,50 220,60 220,80 200,90 180,80 180,60" fill="#00994d" opacity="0.12"/>
+    <polygon points="450,150 470,160 470,180 450,190 430,180 430,160" fill="#00b359" opacity="0.15"/>
+    <polygon points="300,320 320,330 320,350 300,360 280,350 280,330" fill="#27ae60" opacity="0.10"/>
+    
+    <!-- Losangos -->
+    <polygon points="400,80 420,90 400,100 380,90" fill="#00994d" opacity="0.10"/>
+    <polygon points="150,250 170,260 150,270 130,260" fill="#00b359" opacity="0.12"/>
+  </g>
+  
+  <!-- Ondas decorativas -->
+  <g stroke-width="2" fill="none">
+    <path d="M50 200 Q 150 180 250 200 T 450 200" stroke="#00994d" opacity="0.12"/>
+    <path d="M100 300 Q 200 280 300 300 T 500 300" stroke="#00b359" opacity="0.10"/>
+    <path d="M0 100 Q 100 80 200 100 T 400 100" stroke="#27ae60" opacity="0.08"/>
+  </g>
+</svg>
