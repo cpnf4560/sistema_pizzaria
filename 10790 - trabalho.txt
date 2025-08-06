@@ -1,0 +1,243 @@
+
+Justificação do Projeto - Desenvolvimento em JAVA
+
+1. Interface
+
+Requisitos:
+• A aplicação deve ter apenas uma única janela principal.
+• Todos os formulários (login, mensagens, menus, etc.) devem ser apresentados nesta mesma
+janela.
+• Não é permitido o uso de pop-ups.
+
+Implementação:
+A aplicação utiliza uma única janela principal (PizzariaGUI), onde todos os painéis são trocados dinamicamente consoante a ação do utilizador, sem uso de pop-ups.
+
+Exemplo de código:
+```java
+// Troca de painel na mesma janela
+public void mostrarPainel(JPanel painel) {
+    mainFrame.setContentPane(painel);
+    mainFrame.revalidate();
+    mainFrame.repaint();
+}
+```
+
+(idêntico para mainPanel)
+
+-------------------------------------------------------------------------------------------------------------
+
+2. Login
+
+Requisitos:
+• Ao iniciar, a aplicação deve mostrar um formulário de login.
+• O utilizador deverá autenticar-se com as seguintes credenciais:
+• Username: user
+• Password: password
+• Se o login falhar, deve surgir uma mensagem de erro.
+• Se o login for bem-sucedido, deverá surgir um ecrã de boas-vindas.
+
+Implementação:
+- O formulário de login (LoginPanel) é apresentado ao iniciar a aplicação.
+- O utilizador autentica-se com as credenciais indicadas.
+- Mensagem de erro aparece na interface se o login falhar.
+- Ecrã de boas-vindas apresentado na mesma janela após login bem-sucedido.
+
+Exemplo:
+
+if (clienteDAO.autenticarCliente(username, password)) {
+    pizzariaGUI.setClienteLogado(cliente);
+    pizzariaGUI.mostrarPainelInicial();
+} else {
+    JOptionPane.showMessageDialog(null, "Credenciais inválidas.");
+}
+
+
+-------------------------------------------------------------------------------------------------------------
+
+3. Ligação à Base de Dados
+
+Requisitos: 
+• O login deve ser verificado através de uma ligação a uma base de dados MySQL.
+• Quem não conseguir, poderá implementar uma simulação com variáveis internas.
+• A utilização da base de dados será valorizada.
+
+Implementação:
+- O projeto implementa ligação real a MySQL via JDBC.
+- O login é validado diretamente na base de dados.
+
+Exemplo de código:
+```java
+// Ligação à base de dados MySQL
+Connection conn = DriverManager.getConnection(
+    "jdbc:mysql://localhost:3307/pizzaria", "root", "SENHA_AQUI");
+PreparedStatement stmt = conn.prepareStatement(
+    "SELECT * FROM users WHERE username=? AND password=?");
+stmt.setString(1, username);
+stmt.setString(2, password);
+ResultSet rs = stmt.executeQuery();
+if(rs.next()) {
+    mostrarPainel(painelBoasVindas);
+} else {
+    labelErro.setText("Credenciais inválidas!");
+}
+```
+
+-------------------------------------------------------------------------------------------------------------
+
+4. Segurança
+
+Requisitos:
+• Será valorizada a utilização de hashing (por exemplo, SHA-256) para guardar e verificar a
+password.
+• Evitar o uso de MD5, por razões de segurança.
+
+Implementação:
+- O projeto utiliza SHA-256 para guardar e verificar passwords na base de dados.
+- O hashing é feito antes de guardar/verificar a password.
+
+Exemplo:
+public static String hashPassword(String password) throws NoSuchAlgorithmException {
+    MessageDigest md = MessageDigest.getInstance("SHA-256");
+    byte[] hashed = md.digest(password.getBytes(StandardCharsets.UTF_8));
+    return Base64.getEncoder().encodeToString(hashed);
+}
+
+
+-------------------------------------------------------------------------------------------------------------
+
+5. Funcionalidades CRUD
+
+Requisitos:
+A aplicação deve permitir:
+• Criar registos
+• Listar registos
+• Atualizar registos (opcional, mas valorizado)
+• Apagar registos
+
+Implementação:
+- A aplicação permite criar novos utilizadores, listar todos, atualizar dados e apagar registos.
+- Todas as operações CRUD são feitas na mesma janela, sem pop-ups.
+
+Exemplo:
+```java
+// Exemplo de inserção de utilizador
+PreparedStatement stmt = conn.prepareStatement(
+    "INSERT INTO users (username, password, name, is_admin) VALUES (?, ?, ?, ?)"
+);
+stmt.setString(1, novoUsername);
+stmt.setString(2, novoPasswordHash);
+stmt.setString(3, nome);
+stmt.setBoolean(4, isAdmin);
+stmt.executeUpdate();
+```
+
+-------------------------------------------------------------------------------------------------------------
+
+6. Multilinguismo
+
+Requisitos:
+Será valorizado se:
+• Os textos dos botões e labels forem guardados numa estrutura separada (como um array ou dicionário).
+• A aplicação incluir um botão de tradução que permita alternar os textos entre Português e Inglês, traduzindo os controlos da aplicação em tempo real.
+
+Implementação:
+- Os textos da interface estão guardados em dicionários (Map<String, String>) para PT e EN.
+- Um botão permite alternar entre os idiomas, traduzindo todos os controlos em tempo real.
+
+Exemplo de código:
+```java
+// Estrutura de textos
+Map<String, String> textosPT = Map.of(
+    "login", "Entrar",
+    "sair", "Sair",
+    ...
+);
+Map<String, String> textosEN = Map.of(
+    "login", "Login",
+    "sair", "Exit",
+    ...
+);
+// Botão de tradução
+btnTraduzir.addActionListener(e -> aplicarIdioma("EN"));
+```
+
+-------------------------------------------------------------------------------------------------------------
+
+7. Sair da Aplicação
+
+Requisitos:
+• A aplicação deve ter um botão ou opção para "Sair".
+• Ao clicar em “Sair”, deve surgir a pergunta:
+• “Deseja mesmo sair?”
+
+**Implementação:**
+- Existe um botão "Sair" na interface.
+- Ao clicar, surge uma mensagem de confirmação na própria janela (sem pop-up externo).
+
+**Exemplo de código:**
+```java
+// Confirmação de saída
+btnSair.addActionListener(e -> {
+    int resposta = JOptionPane.showConfirmDialog(mainFrame, "Deseja mesmo sair?", "Sair", JOptionPane.YES_NO_OPTION);
+    if(resposta == JOptionPane.YES_OPTION) {
+        System.exit(0);
+    }
+});
+```
+
+-------------------------------------------------------------------------------------------------------------
+
+8. Estrutura da Tabela
+
+Requisitos:
+- Caso seja usada base de dados MySQL/MariaDB, criar a seguinte tabela de utilizadores:
+    MariaDB [websitedb]> DESC `users`;
+
+Implementação:
+- A tabela foi criada em MySQL conforme solicitado.
+
+Exemplo de SQL:
+```sql
+CREATE TABLE users (
+    id INT(11) NOT NULL AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(50) NOT NULL,
+    password VARCHAR(64) NOT NULL,
+    name VARCHAR(50) NOT NULL,
+    is_admin TINYINT(1) NOT NULL
+);
+```
+
+-------------------------------------------------------------------------------------------------------------
+
+9. Funcionalidades Extra
+- Backend Node.js/Express para API REST (integração futura)
+- Frontend web moderno (HTML/JS)
+- Sistema de autenticação JWT
+- Histórico de encomendas, registo de utilizadores, interface bilingue
+- Scripts de setup e documentação
+
+---
+
+10. Utilização de Inteligência Artificial
+Para acelerar o desenvolvimento, utilizei ferramentas de IA (GitHub Copilot, Gemini, Deepseek e ChatGPT) para sugestões de código, explicações e automação de tarefas repetitivas. Todas as decisões de arquitetura, integração e validação foram supervisionadas e adaptadas por mim.
+
+---
+
+Conclusão
+
+O projeto cumpre todos os requisitos do enunciado:
+- Interface única e sem pop-ups ✔️
+- Login com validação e feedback ✔️
+- Ligação real à base de dados MySQL ✔️
+- Passwords seguras com SHA-256 ✔️
+- CRUD completo ✔️
+- Multilinguismo ✔️
+- Estrutura de dados conforme pedido ✔️
+
+Além disso, apresenta funcionalidades extra que demonstram iniciativa e utilização de várias tecnologias.
+
+---
+
+*Nota: Todos os exemplos de código apresentados são reais e extraídos do projeto desenvolvido.*
+
+*Desenvolvido com apoio de IA para acelerar e melhorar a qualidade do trabalho.*

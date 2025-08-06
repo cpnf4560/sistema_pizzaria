@@ -1,0 +1,30 @@
+✨ Funcionalidades implementadas:
+- Sistema de autenticação com JWT (login/registo)
+- Suporte para login com email OU username
+- Sistema de encomendas completo com carrinho
+- Histórico de encomendas por utilizador
+- Interface web moderna e responsiva
+- Sistema de tradução PT/EN
+- Validações completas frontend e backend
+- API REST documentada
+
+🔧 Tecnologias:
+- Backend: Node.js + Express + MySQL
+- Frontend: HTML5 + CSS3 + JavaScript ES6
+- Autenticação: JWT + bcrypt + SHA256
+- Base de dados: MySQL com transações
+- Servidor: Python HTTP Server (frontend)
+
+🎯 Sistema operacional:
+- Registo de utilizadores ✅
+- Login com email/username ✅  
+- Criação de encomendas ✅
+- Histórico pessoal ✅
+- Validação de dados ✅
+- Interface bilingue ✅
+
+📁 Estrutura:
+- /backend - API Node.js
+- /src/frontend - Interface web
+- /src/pizzaria - Código Java (legado)
+- Documentação e guias de instalação"
