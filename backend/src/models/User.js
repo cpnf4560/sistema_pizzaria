@@ -21,11 +21,11 @@ class User {
   static async findByEmail(emailOrUsername) {
     try {
       // A tabela utilizadores tem tanto username quanto email
-      const [rows] = await pool.execute(
-        'SELECT * FROM utilizadores WHERE username = ? OR email = ?',
+      const result = await pool.query(
+        'SELECT * FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
       );
-      return rows.length > 0 ? new User(rows[0]) : null;
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar usuário: ' + error.message);
     }
@@ -33,11 +33,11 @@ class User {
 
   static async findById(id) {
     try {
-      const [rows] = await pool.execute(
-        'SELECT * FROM utilizadores WHERE id = ?',
+      const result = await pool.query(
+        'SELECT * FROM utilizadores WHERE id = $1',
         [id]
       );
-      return rows.length > 0 ? new User(rows[0]) : null;
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar usuário: ' + error.message);
     }
@@ -48,13 +48,12 @@ class User {
       const { email, passwordHash, nome, perfil = 'Cliente' } = userData;
       const isAdmin = perfil === 'Administrador' ? 1 : 0;
       
-      const [result] = await pool.execute(
+      const result = await pool.query(
         `INSERT INTO utilizadores (username, email, password, name, is_admin) 
-         VALUES (?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
         [email, email, passwordHash, nome, isAdmin]
       );
-      
-      return await User.findById(result.insertId);
+      return await User.findById(result.rows[0].id);
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
         throw new Error('Email já cadastrado');
@@ -65,10 +64,10 @@ class User {
 
   static async getAll() {
     try {
-      const [rows] = await pool.execute(
+      const result = await pool.query(
         'SELECT id, username, name, is_admin FROM utilizadores'
       );
-      return rows.map(row => new User(row));
+      return result.rows.map(row => new User(row));
     } catch (error) {
       throw new Error('Erro ao listar usuários: ' + error.message);
     }
@@ -76,14 +75,13 @@ class User {
 
   static async findByIdWithClientData(id) {
     try {
-      const [rows] = await pool.execute(`
+      const result = await pool.query(`
         SELECT u.*, c.morada, c.telefone 
         FROM utilizadores u 
         LEFT JOIN clientes c ON u.email = c.email 
-        WHERE u.id = ?
+        WHERE u.id = $1
       `, [id]);
-      
-      return rows.length > 0 ? new User(rows[0]) : null;
+      return result.rows.length > 0 ? new User(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar usuário com dados do cliente: ' + error.message);
     }
@@ -91,11 +89,11 @@ class User {
 
   static async getPasswordHash(emailOrUsername) {
     try {
-      const [rows] = await pool.execute(
-        'SELECT password FROM utilizadores WHERE username = ? OR email = ?',
+      const result = await pool.query(
+        'SELECT password FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
       );
-      return rows.length > 0 ? rows[0].password : null;
+      return result.rows.length > 0 ? result.rows[0].password : null;
     } catch (error) {
       throw new Error('Erro ao verificar senha: ' + error.message);
     }

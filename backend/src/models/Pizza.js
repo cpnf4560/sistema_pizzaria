@@ -12,8 +12,8 @@ class Pizza {
 
   static async getAll() {
     try {
-      const [rows] = await pool.execute('SELECT * FROM pizza ORDER BY nome');
-      return rows.map(row => new Pizza(row));
+      const result = await pool.query('SELECT * FROM pizza ORDER BY nome');
+      return result.rows.map(row => new Pizza(row));
     } catch (error) {
       throw new Error('Erro ao listar pizzas: ' + error.message);
     }
@@ -21,8 +21,8 @@ class Pizza {
 
   static async findById(id) {
     try {
-      const [rows] = await pool.execute('SELECT * FROM pizza WHERE id = ?', [id]);
-      return rows.length > 0 ? new Pizza(rows[0]) : null;
+      const result = await pool.query('SELECT * FROM pizza WHERE id = $1', [id]);
+      return result.rows.length > 0 ? new Pizza(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar pizza: ' + error.message);
     }
@@ -31,13 +31,12 @@ class Pizza {
   static async create(pizzaData) {
     try {
       const { nome, descricao, preco_pequena, preco_media, preco_grande } = pizzaData;
-      const [result] = await pool.execute(
+      const result = await pool.query(
         `INSERT INTO pizza (nome, descricao, preco_pequena, preco_media, preco_grande) 
-         VALUES (?, ?, ?, ?, ?)`,
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
         [nome, descricao, preco_pequena, preco_media, preco_grande]
       );
-      
-      return await Pizza.findById(result.insertId);
+      return await Pizza.findById(result.rows[0].id);
     } catch (error) {
       throw new Error('Erro ao criar pizza: ' + error.message);
     }
@@ -46,12 +45,11 @@ class Pizza {
   static async update(id, pizzaData) {
     try {
       const { nome, descricao, preco_pequena, preco_media, preco_grande } = pizzaData;
-      await pool.execute(
-        `UPDATE pizza SET nome = ?, descricao = ?, preco_pequena = ?, 
-         preco_media = ?, preco_grande = ? WHERE id = ?`,
+      await pool.query(
+        `UPDATE pizza SET nome = $1, descricao = $2, preco_pequena = $3, 
+         preco_media = $4, preco_grande = $5 WHERE id = $6`,
         [nome, descricao, preco_pequena, preco_media, preco_grande, id]
       );
-      
       return await Pizza.findById(id);
     } catch (error) {
       throw new Error('Erro ao atualizar pizza: ' + error.message);
@@ -60,8 +58,8 @@ class Pizza {
 
   static async delete(id) {
     try {
-      const [result] = await pool.execute('DELETE FROM pizza WHERE id = ?', [id]);
-      return result.affectedRows > 0;
+      const result = await pool.query('DELETE FROM pizza WHERE id = $1', [id]);
+      return result.rowCount > 0;
     } catch (error) {
       if (error.code === 'ER_ROW_IS_REFERENCED_2') {
         throw new Error('Não é possível excluir pizza que possui encomendas');

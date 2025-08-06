@@ -15,6 +15,8 @@ const encomendaRoutes = require('./routes/encomendas');
 const userRoutes = require('./routes/users');
 
 const app = express();
+// Permitir trust proxy para ambientes cloud (Render, etc.)
+app.set('trust proxy', 1);
 const PORT = process.env.PORT || 3000;
 
 // Security middleware

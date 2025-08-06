@@ -12,8 +12,8 @@ class Cliente {
 
   static async getAll() {
     try {
-      const [rows] = await pool.execute('SELECT * FROM clientes ORDER BY nome');
-      return rows.map(row => new Cliente(row));
+      const result = await pool.query('SELECT * FROM clientes ORDER BY nome');
+      return result.rows.map(row => new Cliente(row));
     } catch (error) {
       throw new Error('Erro ao listar clientes: ' + error.message);
     }
@@ -22,35 +22,14 @@ class Cliente {
   static async findById(id) {
     try {
       const idNum = Number(id);
-      console.log('🔎 [findById] Procurando cliente com id:', id, 'convertido para:', idNum);
-      
-      // Debug: verificar conexão e base de dados
-      const connection = await pool.getConnection();
-      console.log('🔎 [findById] Conexão obtida para database:', connection.config.database);
-      
-      const [rows] = await connection.execute('SELECT * FROM clientes WHERE id = ?', [idNum]);
-      console.log('🔎 [findById] Resultado da query:', rows);
-      console.log('🔎 [findById] Número de resultados:', rows.length);
-      
-      // Se não encontrou o cliente, buscar o primeiro disponível
-      if (rows.length === 0) {
-        console.log('⚠️ [findById] Cliente não encontrado, buscando primeiro disponível...');
-        const [firstClient] = await connection.execute('SELECT * FROM clientes ORDER BY id LIMIT 1');
-        
-        if (firstClient.length > 0) {
-          console.log('✅ [findById] Usando primeiro cliente disponível:', firstClient[0].id, '-', firstClient[0].nome);
-          connection.release();
-          return new Cliente(firstClient[0]);
+      const result = await pool.query('SELECT * FROM clientes WHERE id = $1', [idNum]);
+      if (result.rows.length === 0) {
+        const firstClient = await pool.query('SELECT * FROM clientes ORDER BY id LIMIT 1');
+        if (firstClient.rows.length > 0) {
+          return new Cliente(firstClient.rows[0]);
         }
       }
-      
-      // Debug adicional: mostrar todos os clientes
-      const [allClients] = await connection.execute('SELECT id, nome FROM clientes');
-      console.log('🔎 [findById] Todos os clientes na BD:', allClients);
-      
-      connection.release();
-      
-      return rows.length > 0 ? new Cliente(rows[0]) : null;
+      return result.rows.length > 0 ? new Cliente(result.rows[0]) : null;
     } catch (error) {
       console.log('❌ [findById] Erro:', error.message);
       throw new Error('Erro ao buscar cliente: ' + error.message);
@@ -60,15 +39,10 @@ class Cliente {
   // Função específica para encontrar o primeiro cliente disponível
   static async findFirst() {
     try {
-      console.log('🔎 [findFirst] Buscando primeiro cliente disponível...');
-      const [rows] = await pool.execute('SELECT * FROM clientes ORDER BY id LIMIT 1');
-      
-      if (rows.length > 0) {
-        console.log('✅ [findFirst] Primeiro cliente encontrado:', rows[0].id, '-', rows[0].nome);
-        return new Cliente(rows[0]);
+      const result = await pool.query('SELECT * FROM clientes ORDER BY id LIMIT 1');
+      if (result.rows.length > 0) {
+        return new Cliente(result.rows[0]);
       }
-      
-      console.log('❌ [findFirst] Nenhum cliente encontrado na base de dados');
       return null;
     } catch (error) {
       console.log('❌ [findFirst] Erro:', error.message);
@@ -78,8 +52,8 @@ class Cliente {
 
   static async findByEmail(email) {
     try {
-      const [rows] = await pool.execute('SELECT * FROM clientes WHERE email = ?', [email]);
-      return rows.length > 0 ? new Cliente(rows[0]) : null;
+      const result = await pool.query('SELECT * FROM clientes WHERE email = $1', [email]);
+      return result.rows.length > 0 ? new Cliente(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar cliente por email: ' + error.message);
     }
@@ -102,20 +76,17 @@ class Cliente {
       
       // Verificar se utilizador_id é fornecido
       if (utilizador_id) {
-        const [result] = await pool.execute(
-          'INSERT INTO clientes (nome, morada, telefone, email, utilizador_id) VALUES (?, ?, ?, ?, ?)',
+        const result = await pool.query(
+          'INSERT INTO clientes (nome, morada, telefone, email, utilizador_id) VALUES ($1, $2, $3, $4, $5) RETURNING id',
           [nome, morada, telefone, email, utilizador_id]
         );
-        console.log('✅ Novo cliente criado com ID:', result.insertId);
-        return await Cliente.findById(result.insertId);
+        return await Cliente.findById(result.rows[0].id);
       } else {
-        // Manter compatibilidade com sistema antigo
-        const [result] = await pool.execute(
-          'INSERT INTO clientes (nome, morada, telefone, email) VALUES (?, ?, ?, ?)',
+        const result = await pool.query(
+          'INSERT INTO clientes (nome, morada, telefone, email) VALUES ($1, $2, $3, $4) RETURNING id',
           [nome, morada, telefone, email]
         );
-        console.log('✅ Novo cliente criado com ID:', result.insertId);
-        return await Cliente.findById(result.insertId);
+        return await Cliente.findById(result.rows[0].id);
       }
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
@@ -128,11 +99,10 @@ class Cliente {
   static async update(id, clienteData) {
     try {
       const { nome, morada, telefone, email } = clienteData;
-      await pool.execute(
-        'UPDATE clientes SET nome = ?, morada = ?, telefone = ?, email = ? WHERE id = ?',
+      await pool.query(
+        'UPDATE clientes SET nome = $1, morada = $2, telefone = $3, email = $4 WHERE id = $5',
         [nome, morada, telefone, email, id]
       );
-      
       return await Cliente.findById(id);
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
@@ -144,8 +114,8 @@ class Cliente {
 
   static async delete(id) {
     try {
-      const [result] = await pool.execute('DELETE FROM clientes WHERE id = ?', [id]);
-      return result.affectedRows > 0;
+      const result = await pool.query('DELETE FROM clientes WHERE id = $1', [id]);
+      return result.rowCount > 0;
     } catch (error) {
       if (error.code === 'ER_ROW_IS_REFERENCED_2') {
         throw new Error('Não é possível excluir cliente que possui encomendas');
