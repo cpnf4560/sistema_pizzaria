@@ -3,14 +3,14 @@ console.log('🔧 Arquivo login-system.js carregado');
 
 class LoginSystem {
     constructor() {
-        this.API_BASE = 'http://localhost:3000/api';
+        this.API_BASE = '/api';
         this.currentUser = null;
         this.token = localStorage.getItem('pizzaria_token');
         
         console.log('🔧 LoginSystem inicializado');
         console.log('🔧 API_BASE:', this.API_BASE);
         console.log('🔧 Frontend Port: 8080');
-        console.log('🔧 Backend Port: 3000');
+        // console.log('🔧 Backend Port: 3000');
         console.log('🔧 Token encontrado:', this.token ? 'SIM' : 'NÃO');
         
         this.initEventListeners();
@@ -210,7 +210,7 @@ class LoginSystem {
             console.error('❌ Mensagem do erro:', error.message);
             
             if (error instanceof TypeError && error.message.includes('fetch')) {
-                this.showLoginError('Erro de rede. Verifique se o servidor backend está ativo na porta 3000.');
+                this.showLoginError('Erro de rede. Não foi possível contactar o backend.');
             } else if (error.name === 'SyntaxError') {
                 this.showLoginError('Erro na resposta do servidor. Dados inválidos recebidos.');
             } else {
@@ -295,7 +295,7 @@ class LoginSystem {
             console.error('❌ Mensagem do erro:', error.message);
             
             if (error instanceof TypeError && error.message.includes('fetch')) {
-                this.showRegisterError('Erro de rede. Verifique se o servidor backend está ativo na porta 3000.');
+                this.showRegisterError('Erro de rede. Não foi possível contactar o backend.');
             } else if (error.name === 'SyntaxError') {
                 this.showRegisterError('Erro na resposta do servidor. Dados inválidos recebidos.');
             } else {

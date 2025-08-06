@@ -4,7 +4,7 @@
  */
 
 // Configuração da API
-const API_BASE = 'http://localhost:3000';
+const API_BASE = '';
 let authToken = localStorage.getItem('pizzaria_token') || '';
 let currentUser = null;
 

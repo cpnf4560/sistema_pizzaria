@@ -56,7 +56,7 @@ class AdminSystem {
         try {
             console.log('🔐 Tentando login de administrador...');
             
-            const response = await fetch('http://localhost:3000/api/admin/login', {
+            const response = await fetch('/api/admin/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -111,7 +111,7 @@ class AdminSystem {
 
             console.log('🔑 Token encontrado:', token.substring(0, 20) + '...');
 
-            const response = await fetch('http://localhost:3000/api/admin/relatorios', {
+            const response = await fetch('/api/admin/relatorios', {
                 method: 'GET',
                 headers: {
                     'Authorization': `Bearer ${token}`,
