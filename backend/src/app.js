@@ -51,9 +51,14 @@ const authLimiter = rateLimit({
 // app.use('/api/auth/login', authLimiter); // COMENTADO PARA TESTES
 // app.use('/api/auth/register', authLimiter); // COMENTADO PARA TESTES
 
+
 // Body parser middleware
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
+
+// Servir frontend estático
+const frontendPath = path.join(__dirname, '../../src/frontend');
+app.use(express.static(frontendPath));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
@@ -73,22 +78,11 @@ app.use('/api/clientes', clienteRoutes);
 app.use('/api/encomendas', encomendaRoutes);
 app.use('/api/users', userRoutes);
 
-// Root endpoint - API info
-app.get('/', (req, res) => {
-  res.json({
-    success: true,
-    message: 'API da Pizzaria - Backend Node.js',
-    version: '1.0.0',
-    frontend: 'http://localhost:8080',
-    documentation: '/api/docs',
-    endpoints: {
-      auth: '/api/auth',
-      pizzas: '/api/pizzas',
-      clientes: '/api/clientes',
-      encomendas: '/api/encomendas',
-      users: '/api/users (apenas supervisores)'
-    }
-  });
+
+// Redirecionar todas as rotas desconhecidas (exceto /api) para index.html
+app.get('*', (req, res, next) => {
+  if (req.path.startsWith('/api')) return next();
+  res.sendFile(path.join(frontendPath, 'index.html'));
 });
 
 // 404 handler
