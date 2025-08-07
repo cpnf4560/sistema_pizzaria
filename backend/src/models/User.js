@@ -45,10 +45,11 @@ class Utilizador {
   static async create(userData) {
     try {
       const { email, username, passwordHash, nome, perfil = 'Cliente', ativo = true } = userData;
+      const usernameFinal = username || email;
       const result = await pool.query(
         `INSERT INTO utilizadores (email, username, password_hash, nome, perfil, ativo) 
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [email, username, passwordHash, nome, perfil, ativo]
+        [email, usernameFinal, passwordHash, nome, perfil, ativo]
       );
       return await Utilizador.findById(result.rows[0].id);
     } catch (error) {

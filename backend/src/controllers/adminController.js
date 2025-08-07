@@ -133,10 +133,15 @@ const getRelatorios = async (req, res) => {
         `;
         
         // Executar queries
-        const [encomendas] = await pool.execute(encomendaQuery);
-        const [pizzas] = await pool.execute(pizzasQuery);
-        const [clientes] = await pool.execute(clientesQuery);
-        const [estatisticas] = await pool.execute(estatisticasQuery);
+        const encomendasResult = await pool.query(encomendaQuery);
+        const pizzasResult = await pool.query(pizzasQuery);
+        const clientesResult = await pool.query(clientesQuery);
+        const estatisticasResult = await pool.query(estatisticasQuery);
+
+        const encomendas = encomendasResult.rows || encomendasResult[0] || [];
+        const pizzas = pizzasResult.rows || pizzasResult[0] || [];
+        const clientes = clientesResult.rows || clientesResult[0] || [];
+        const estatisticas = estatisticasResult.rows || estatisticasResult[0] || [];
         
         console.log('✅ Relatórios gerados com sucesso');
         
