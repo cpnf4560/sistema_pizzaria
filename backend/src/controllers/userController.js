@@ -1,13 +1,13 @@
-const User = require('../models/User');
+const Utilizador = require('../models/User');
 
 const getAllUsers = async (req, res) => {
   try {
-    const users = await User.getAll();
+    const utilizadores = await Utilizador.getAll();
     
     res.json({
       success: true,
       message: 'Usuários listados com sucesso',
-      data: users.map(user => user.toJSON())
+      data: utilizadores.map(utilizador => utilizador.toJSON())
     });
 
   } catch (error) {
@@ -21,9 +21,9 @@ const getAllUsers = async (req, res) => {
 const getUserById = async (req, res) => {
   try {
     const { id } = req.params;
-    const user = await User.findById(id);
+    const utilizador = await Utilizador.findById(id);
 
-    if (!user) {
+    if (!utilizador) {
       return res.status(404).json({
         success: false,
         message: 'Usuário não encontrado'
@@ -33,7 +33,7 @@ const getUserById = async (req, res) => {
     res.json({
       success: true,
       message: 'Usuário encontrado',
-      data: user.toJSON()
+      data: utilizador.toJSON()
     });
 
   } catch (error) {
@@ -64,20 +64,20 @@ const updateUserStatus = async (req, res) => {
       });
     }
 
-    const existingUser = await User.findById(id);
-    if (!existingUser) {
+    const existingUtilizador = await Utilizador.findById(id);
+    if (!existingUtilizador) {
       return res.status(404).json({
         success: false,
         message: 'Usuário não encontrado'
       });
     }
 
-    const user = await User.updateStatus(id, ativo);
+    const utilizador = await Utilizador.updateStatus(id, ativo);
 
     res.json({
       success: true,
       message: `Usuário ${ativo ? 'ativado' : 'desativado'} com sucesso`,
-      data: user.toJSON()
+      data: utilizador.toJSON()
     });
 
   } catch (error) {
@@ -100,8 +100,8 @@ const deleteUser = async (req, res) => {
       });
     }
 
-    const existingUser = await User.findById(id);
-    if (!existingUser) {
+    const existingUtilizador = await Utilizador.findById(id);
+    if (!existingUtilizador) {
       return res.status(404).json({
         success: false,
         message: 'Usuário não encontrado'
@@ -109,7 +109,7 @@ const deleteUser = async (req, res) => {
     }
 
     // Ao invés de excluir, desativar o usuário
-    await User.updateStatus(id, false);
+    await Utilizador.updateStatus(id, false);
 
     res.json({
       success: true,
@@ -126,14 +126,14 @@ const deleteUser = async (req, res) => {
 
 const getUserStats = async (req, res) => {
   try {
-    const users = await User.getAll();
+    const utilizadores = await Utilizador.getAll();
     
     const stats = {
-      total: users.length,
-      ativos: users.filter(user => user.ativo).length,
-      inativos: users.filter(user => !user.ativo).length,
-      clientes: users.filter(user => user.perfil === 'Cliente').length,
-      supervisores: users.filter(user => user.perfil === 'Supervisor').length
+      total: utilizadores.length,
+      ativos: utilizadores.filter(u => u.ativo).length,
+      inativos: utilizadores.filter(u => !u.ativo).length,
+      clientes: utilizadores.filter(u => u.perfil === 'Cliente').length,
+      supervisores: utilizadores.filter(u => u.perfil === 'Supervisor').length
     };
 
     res.json({

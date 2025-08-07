@@ -24,9 +24,10 @@ CREATE TABLE IF NOT EXISTS clientes (
 );
 
 -- 3. Criar tabela de utilizadores (sistema de login)
-CREATE TABLE IF NOT EXISTS usuarios (
+CREATE TABLE IF NOT EXISTS utilizadores (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
+    username VARCHAR(100) UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
     nome VARCHAR(255) NOT NULL,
     perfil VARCHAR(20) DEFAULT 'Cliente' CHECK (perfil IN ('Cliente', 'Supervisor')),
@@ -39,7 +40,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 CREATE TABLE IF NOT EXISTS encomendas (
     id SERIAL PRIMARY KEY,
     cliente_id INT NOT NULL REFERENCES clientes(id),
-    usuario_id INT REFERENCES usuarios(id),
+    utilizador_id INT REFERENCES utilizadores(id),
     data_hora TIMESTAMPTZ DEFAULT now(),
     tipo_entrega VARCHAR(10) NOT NULL DEFAULT 'recolha' CHECK (tipo_entrega IN ('recolha','entrega')),
     hora_entrega TIME,
@@ -77,8 +78,8 @@ VALUES
 ON CONFLICT DO NOTHING;
 
 -- 7. Inserir utilizador admin (senha: admin)
-INSERT INTO usuarios (email, password_hash, nome, perfil)
-VALUES ('admin@pizzaria.com', '$2a$12$4Cy6B7WrxipBVazRpVblsejMkvzU7eBYQplNmfBZnY84lbkxZstJy', 'Administrador', 'Supervisor')
+INSERT INTO utilizadores (email, username, password_hash, nome, perfil)
+VALUES ('admin@pizzaria.com', 'admin', '$2a$12$4Cy6B7WrxipBVazRpVblsejMkvzU7eBYQplNmfBZnY84lbkxZstJy', 'Administrador', 'Supervisor')
 ON CONFLICT DO NOTHING;
 
 -- ===== SCHEMA ADAPTADO PARA COCKROACHDB/POSTGRESQL =====

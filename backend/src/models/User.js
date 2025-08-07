@@ -1,15 +1,14 @@
 const { pool } = require('../config/database');
 
-class User {
+class Utilizador {
   constructor(data) {
     this.id = data.id;
-    this.email = data.email || data.username; // Usar email se existir, senão username
+    this.email = data.email || data.username;
     this.username = data.username;
-    this.nome = data.name; // A tabela utilizadores usa name
-    this.name = data.name;
-    this.perfil = data.is_admin ? 'Administrador' : 'Cliente';
-    this.is_admin = data.is_admin;
-    this.ativo = 1; // Assumir sempre ativo para esta tabela
+    this.nome = data.nome;
+    this.perfil = data.perfil;
+    this.ativo = data.ativo;
+    this.password_hash = data.password_hash;
     
     // Estes campos vão vir da tabela clientes se necessário
     this.morada = data.morada || '';
@@ -25,7 +24,7 @@ class User {
         'SELECT * FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
       );
-      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+      return result.rows.length > 0 ? new Utilizador(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar usuário: ' + error.message);
     }
@@ -37,7 +36,7 @@ class User {
         'SELECT * FROM utilizadores WHERE id = $1',
         [id]
       );
-      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+      return result.rows.length > 0 ? new Utilizador(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar usuário: ' + error.message);
     }
@@ -45,15 +44,13 @@ class User {
 
   static async create(userData) {
     try {
-      const { email, passwordHash, nome, perfil = 'Cliente' } = userData;
-      const isAdmin = perfil === 'Administrador' ? 1 : 0;
-      
+      const { email, username, passwordHash, nome, perfil = 'Cliente', ativo = true } = userData;
       const result = await pool.query(
-        `INSERT INTO utilizadores (username, email, password, name, is_admin) 
-         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [email, email, passwordHash, nome, isAdmin]
+        `INSERT INTO utilizadores (email, username, password_hash, nome, perfil, ativo) 
+         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
+        [email, username, passwordHash, nome, perfil, ativo]
       );
-      return await User.findById(result.rows[0].id);
+      return await Utilizador.findById(result.rows[0].id);
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
         throw new Error('Email já cadastrado');
@@ -65,9 +62,9 @@ class User {
   static async getAll() {
     try {
       const result = await pool.query(
-        'SELECT id, username, name, is_admin FROM utilizadores'
+        'SELECT * FROM utilizadores'
       );
-      return result.rows.map(row => new User(row));
+      return result.rows.map(row => new Utilizador(row));
     } catch (error) {
       throw new Error('Erro ao listar usuários: ' + error.message);
     }
@@ -81,7 +78,7 @@ class User {
         LEFT JOIN clientes c ON u.email = c.email 
         WHERE u.id = $1
       `, [id]);
-      return result.rows.length > 0 ? new User(result.rows[0]) : null;
+      return result.rows.length > 0 ? new Utilizador(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar usuário com dados do cliente: ' + error.message);
     }
@@ -90,10 +87,10 @@ class User {
   static async getPasswordHash(emailOrUsername) {
     try {
       const result = await pool.query(
-        'SELECT password FROM utilizadores WHERE username = $1 OR email = $2',
+        'SELECT password_hash FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
       );
-      return result.rows.length > 0 ? result.rows[0].password : null;
+      return result.rows.length > 0 ? result.rows[0].password_hash : null;
     } catch (error) {
       throw new Error('Erro ao verificar senha: ' + error.message);
     }
@@ -103,15 +100,16 @@ class User {
     return {
       id: this.id,
       email: this.email,
+      username: this.username,
       nome: this.nome,
-      morada: this.morada,
-      telefone: this.telefone,
       perfil: this.perfil,
       ativo: this.ativo,
       created_at: this.created_at,
-      updated_at: this.updated_at
+      updated_at: this.updated_at,
+      morada: this.morada,
+      telefone: this.telefone
     };
   }
 }
 
-module.exports = User;
+module.exports = Utilizador;

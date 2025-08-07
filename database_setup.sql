@@ -38,7 +38,7 @@ CREATE TABLE IF NOT EXISTS clientes (
 );
 
 -- 6. Criar tabela de utilizadores (sistema de login)
-CREATE TABLE IF NOT EXISTS usuarios (
+CREATE TABLE IF NOT EXISTS utilizadores (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
@@ -54,7 +54,7 @@ CREATE TABLE IF NOT EXISTS usuarios (
 CREATE TABLE IF NOT EXISTS encomendas (
     id INT AUTO_INCREMENT PRIMARY KEY,
     cliente_id INT NOT NULL,
-    usuario_id INT NULL,
+    utilizador_id INT NULL,
     data_hora DATETIME DEFAULT CURRENT_TIMESTAMP,
     tipo_entrega ENUM('recolha','entrega') NOT NULL DEFAULT 'recolha',
     hora_entrega TIME,
@@ -98,7 +98,7 @@ INSERT IGNORE INTO pizza (nome, descricao, preco_pequena, preco_media, preco_gra
 ('Prosciutto', 'Molho de tomate, mozzarella, presunto de Parma e rúcula', 10.00, 12.50, 15.50);
 
 -- 10. Inserir utilizador admin (senha: admin)
-INSERT IGNORE INTO usuarios (email, password_hash, nome, perfil) 
+INSERT IGNORE INTO utilizadores (email, password_hash, nome, perfil) 
 VALUES ('admin@pizzaria.com', '$2a$12$4Cy6B7WrxipBVazRpVblsejMkvzU7eBYQplNmfBZnY84lbkxZstJy', 'Administrador', 'Supervisor');
 
 -- ===== CONFIGURAÇÃO COMPLETA! =====

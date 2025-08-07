@@ -4,7 +4,7 @@ class Encomenda {
   constructor(data) {
     this.id = data.id;
     this.cliente_id = data.cliente_id;
-    this.usuario_id = data.usuario_id;
+    this.utilizador_id = data.utilizador_id;
     this.data_hora = data.data_hora;
     this.tipo_entrega = data.tipo_entrega;
     this.hora_entrega = data.hora_entrega;
@@ -362,7 +362,7 @@ class Encomenda {
     return {
       id: this.id,
       cliente_id: this.cliente_id,
-      usuario_id: this.usuario_id,
+      utilizador_id: this.utilizador_id,
       data_hora: this.data_hora,
       tipo_entrega: this.tipo_entrega,
       hora_entrega: this.hora_entrega,
