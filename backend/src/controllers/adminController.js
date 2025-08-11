@@ -68,7 +68,7 @@ const getRelatorios = async (req, res) => {
                 JOIN encomendas e2 ON ep.encomenda_id = e2.id
                 GROUP BY ep.encomenda_id
             ) order_totals ON e.id = order_totals.encomenda_id
-            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
             GROUP BY DATE(e.data_hora)
             ORDER BY data DESC
             LIMIT 10
@@ -83,7 +83,7 @@ const getRelatorios = async (req, res) => {
             FROM encomenda_pizzas ep
             JOIN pizza p ON ep.pizza_id = p.id
             JOIN encomendas e ON ep.encomenda_id = e.id
-            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
             GROUP BY p.id, p.nome
             ORDER BY quantidade_vendida DESC
             LIMIT 10
@@ -106,7 +106,7 @@ const getRelatorios = async (req, res) => {
                 JOIN encomendas e2 ON ep.encomenda_id = e2.id
                 GROUP BY ep.encomenda_id
             ) order_totals ON e.id = order_totals.encomenda_id
-            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
             GROUP BY c.email
             ORDER BY total_encomendas DESC
             LIMIT 10
@@ -129,7 +129,7 @@ const getRelatorios = async (req, res) => {
                 JOIN encomendas e2 ON ep.encomenda_id = e2.id
                 GROUP BY ep.encomenda_id
             ) order_totals ON e.id = order_totals.encomenda_id
-            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
         `;
         
         // Executar queries
