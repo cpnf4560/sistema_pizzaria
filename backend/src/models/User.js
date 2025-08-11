@@ -3,23 +3,20 @@ const { pool } = require('../config/database');
 class Utilizador {
   constructor(data) {
     this.id = data.id;
-    this.email = data.email || data.username;
+    this.email = data.email;
     this.username = data.username;
-    this.nome = data.nome;
-    this.perfil = data.perfil;
-    this.ativo = data.ativo;
-    this.password_hash = data.password_hash;
-    
-    // Estes campos vão vir da tabela clientes se necessário
+    this.name = data.name; // CockroachDB: name
+    this.password = data.password; // CockroachDB: password
+    this.password_hash = data.password_hash; // CockroachDB: password_hash
+    this.is_admin = data.is_admin || false;
     this.morada = data.morada || '';
     this.telefone = data.telefone || '';
     this.created_at = data.created_at;
-    this.updated_at = data.updated_at;
   }
 
   static async findByEmail(emailOrUsername) {
     try {
-      // A tabela utilizadores tem tanto username quanto email
+      // username OU email
       const result = await pool.query(
         'SELECT * FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
@@ -44,12 +41,13 @@ class Utilizador {
 
   static async create(userData) {
     try {
-      const { email, username, passwordHash, nome, perfil = 'Cliente', ativo = true } = userData;
+      // passwordHash será usado para password e password_hash
+      const { email, username, passwordHash, name = '', is_admin = false } = userData;
       const usernameFinal = username || email;
       const result = await pool.query(
-        `INSERT INTO utilizadores (email, username, password_hash, nome, perfil, ativo) 
+        `INSERT INTO utilizadores (email, username, password, password_hash, name, is_admin) 
          VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [email, usernameFinal, passwordHash, nome, perfil, ativo]
+        [email, usernameFinal, passwordHash, passwordHash, name, is_admin]
       );
       return await Utilizador.findById(result.rows[0].id);
     } catch (error) {
@@ -102,11 +100,9 @@ class Utilizador {
       id: this.id,
       email: this.email,
       username: this.username,
-      nome: this.nome,
-      perfil: this.perfil,
-      ativo: this.ativo,
+      name: this.name,
+      is_admin: this.is_admin,
       created_at: this.created_at,
-      updated_at: this.updated_at,
       morada: this.morada,
       telefone: this.telefone
     };
