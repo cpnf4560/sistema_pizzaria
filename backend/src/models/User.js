@@ -5,9 +5,8 @@ class Utilizador {
     this.id = data.id;
     this.email = data.email;
     this.username = data.username;
-    this.name = data.name; // CockroachDB: name
-    this.password = data.password; // CockroachDB: password
-    this.password_hash = data.password_hash; // CockroachDB: password_hash
+  this.name = data.name; // CockroachDB: name
+  this.password_hash = data.password_hash; // CockroachDB: password_hash
     this.is_admin = data.is_admin || false;
     this.morada = data.morada || '';
     this.telefone = data.telefone || '';
@@ -41,13 +40,13 @@ class Utilizador {
 
   static async create(userData) {
     try {
-      // passwordHash será usado para password e password_hash
+      // passwordHash será usado apenas para password_hash
       const { email, username, passwordHash, name = '', is_admin = false } = userData;
       const usernameFinal = username || email;
       const result = await pool.query(
-        `INSERT INTO utilizadores (email, username, password, password_hash, name, is_admin) 
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [email, usernameFinal, passwordHash, passwordHash, name, is_admin]
+        `INSERT INTO utilizadores (email, username, password_hash, name, is_admin) 
+         VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+        [email, usernameFinal, passwordHash, name, is_admin]
       );
       return await Utilizador.findById(result.rows[0].id);
     } catch (error) {
