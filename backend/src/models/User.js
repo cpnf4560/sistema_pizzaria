@@ -21,8 +21,7 @@ class Utilizador {
       const result = await pool.query(
         'SELECT * FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
-      const bcrypt = require('bcrypt');
-      bcrypt.hash('novaSenha123', 12).then(console.log);      );
+      );
       return result.rows.length > 0 ? new Utilizador(result.rows[0]) : null;
     } catch (error) {
       throw new Error('Erro ao buscar usuário: ' + error.message);
