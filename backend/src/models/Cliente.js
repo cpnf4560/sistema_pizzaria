@@ -7,7 +7,6 @@ class Cliente {
     this.morada = data.morada;
     this.telefone = data.telefone;
     this.email = data.email;
-    this.utilizador_id = data.utilizador_id;
   }
 
   static async getAll() {
@@ -61,33 +60,20 @@ class Cliente {
 
   static async create(clienteData) {
     try {
-      const { nome, morada, telefone, email, utilizador_id } = clienteData;
-      
+      const { nome, morada, telefone, email } = clienteData;
       // Primeiro verificar se já existe um cliente com este email
       console.log('🔍 Verificando se cliente já existe com email:', email);
       const clienteExistente = await Cliente.findByEmail(email);
-      
       if (clienteExistente) {
         console.log('✅ Cliente já existe, retornando existente:', clienteExistente.id);
         return clienteExistente;
       }
-      
       console.log('➕ Cliente não existe, criando novo...');
-      
-      // Verificar se utilizador_id é fornecido
-      if (utilizador_id) {
-        const result = await pool.query(
-          'INSERT INTO clientes (nome, morada, telefone, email, utilizador_id) VALUES ($1, $2, $3, $4, $5) RETURNING id',
-          [nome, morada, telefone, email, utilizador_id]
-        );
-        return await Cliente.findById(result.rows[0].id);
-      } else {
-        const result = await pool.query(
-          'INSERT INTO clientes (nome, morada, telefone, email) VALUES ($1, $2, $3, $4) RETURNING id',
-          [nome, morada, telefone, email]
-        );
-        return await Cliente.findById(result.rows[0].id);
-      }
+      const result = await pool.query(
+        'INSERT INTO clientes (nome, morada, telefone, email) VALUES ($1, $2, $3, $4) RETURNING id',
+        [nome, morada, telefone, email]
+      );
+      return await Cliente.findById(result.rows[0].id);
     } catch (error) {
       if (error.code === 'ER_DUP_ENTRY') {
         throw new Error('Email já cadastrado');

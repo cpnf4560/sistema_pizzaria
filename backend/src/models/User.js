@@ -5,9 +5,11 @@ class Utilizador {
     this.id = data.id;
     this.email = data.email;
     this.username = data.username;
-  this.name = data.name; // CockroachDB: name
-  this.password_hash = data.password_hash; // CockroachDB: password_hash
-    this.is_admin = data.is_admin || false;
+    this.nome = data.nome; // CockroachDB: nome
+    this.password_hash = data.password_hash; // CockroachDB: password_hash
+    // Derivar is_admin do campo perfil
+    this.perfil = data.perfil || 'Cliente';
+    this.is_admin = (data.perfil === 'Supervisor');
     this.morada = data.morada || '';
     this.telefone = data.telefone || '';
     this.created_at = data.created_at;
@@ -41,12 +43,12 @@ class Utilizador {
   static async create(userData) {
     try {
       // passwordHash será usado apenas para password_hash
-      const { email, username, passwordHash, name = '', is_admin = false } = userData;
+      const { email, username, passwordHash, nome = '', perfil = 'Cliente' } = userData;
       const usernameFinal = username || email;
       const result = await pool.query(
-        `INSERT INTO utilizadores (email, username, password_hash, name, is_admin) 
+        `INSERT INTO utilizadores (email, username, password_hash, nome, perfil) 
          VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-        [email, usernameFinal, passwordHash, name, is_admin]
+        [email, usernameFinal, passwordHash, nome, perfil]
       );
       return await Utilizador.findById(result.rows[0].id);
     } catch (error) {
@@ -99,6 +101,9 @@ class Utilizador {
       id: this.id,
       email: this.email,
       username: this.username,
+      nome: this.nome,
+      perfil: this.perfil,
+      is_admin: this.is_admin,
       name: this.name,
       is_admin: this.is_admin,
       created_at: this.created_at,
