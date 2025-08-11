@@ -5,12 +5,9 @@ class Utilizador {
     this.id = data.id;
     this.email = data.email || data.username;
     this.username = data.username;
-    this.nome = data.nome;
-    this.perfil = data.perfil;
-    this.ativo = data.ativo;
-    this.password_hash = data.password_hash;
-    
-    // Estes campos vão vir da tabela clientes se necessário
+    this.name = data.name; // nome no banco
+    this.password = data.password; // password no banco
+    // Campos opcionais
     this.morada = data.morada || '';
     this.telefone = data.telefone || '';
     this.created_at = data.created_at;
@@ -19,7 +16,6 @@ class Utilizador {
 
   static async findByEmail(emailOrUsername) {
     try {
-      // A tabela utilizadores tem tanto username quanto email
       const result = await pool.query(
         'SELECT * FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
@@ -44,12 +40,12 @@ class Utilizador {
 
   static async create(userData) {
     try {
-      const { email, username, passwordHash, nome, perfil = 'Cliente', ativo = true } = userData;
+      const { email, username, password, name } = userData;
       const usernameFinal = username || email;
       const result = await pool.query(
-        `INSERT INTO utilizadores (email, username, password_hash, nome, perfil, ativo) 
-         VALUES ($1, $2, $3, $4, $5, $6) RETURNING id`,
-        [email, usernameFinal, passwordHash, nome, perfil, ativo]
+        `INSERT INTO utilizadores (email, username, password, name) 
+         VALUES ($1, $2, $3, $4) RETURNING id`,
+        [email, usernameFinal, password, name]
       );
       return await Utilizador.findById(result.rows[0].id);
     } catch (error) {
@@ -88,10 +84,10 @@ class Utilizador {
   static async getPasswordHash(emailOrUsername) {
     try {
       const result = await pool.query(
-        'SELECT password_hash FROM utilizadores WHERE username = $1 OR email = $2',
+        'SELECT password FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
       );
-      return result.rows.length > 0 ? result.rows[0].password_hash : null;
+      return result.rows.length > 0 ? result.rows[0].password : null;
     } catch (error) {
       throw new Error('Erro ao verificar senha: ' + error.message);
     }
@@ -102,9 +98,7 @@ class Utilizador {
       id: this.id,
       email: this.email,
       username: this.username,
-      nome: this.nome,
-      perfil: this.perfil,
-      ativo: this.ativo,
+      name: this.name,
       created_at: this.created_at,
       updated_at: this.updated_at,
       morada: this.morada,
