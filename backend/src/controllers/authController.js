@@ -22,7 +22,7 @@ const register = async (req, res) => {
     console.log('📝 === TENTATIVA DE REGISTO ===');
     console.log('📨 Body recebido:', req.body);
     
-    const { email, password, nome, perfil = 'Cliente' } = req.body;
+  const { email, password, nome, perfil = 'Cliente' } = req.body;
     
     // Validar dados obrigatórios
     if (!email || !password || !nome) {
@@ -57,7 +57,7 @@ const register = async (req, res) => {
     const user = await User.create({
       email,
       passwordHash,
-      nome,
+      name: nome,
       perfil
     });
     console.log('✅ Utilizador criado com sucesso:', user.id);
