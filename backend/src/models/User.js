@@ -7,7 +7,6 @@ class Utilizador {
     this.username = data.username;
     this.nome = data.nome; // CockroachDB: nome
     this.password_hash = data.password_hash; // CockroachDB: password_hash
-    // Derivar is_admin do campo perfil
     this.perfil = data.perfil || 'Cliente';
     this.is_admin = (data.perfil === 'Supervisor');
     this.morada = data.morada || '';
@@ -17,7 +16,6 @@ class Utilizador {
 
   static async findByEmail(emailOrUsername) {
     try {
-      // username OU email
       const result = await pool.query(
         'SELECT * FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
@@ -87,10 +85,10 @@ class Utilizador {
   static async getPasswordHash(emailOrUsername) {
     try {
       const result = await pool.query(
-        'SELECT password_hash FROM utilizadores WHERE username = $1 OR email = $2',
+        'SELECT password FROM utilizadores WHERE username = $1 OR email = $2',
         [emailOrUsername, emailOrUsername]
       );
-      return result.rows.length > 0 ? result.rows[0].password_hash : null;
+      return result.rows.length > 0 ? result.rows[0].password : null;
     } catch (error) {
       throw new Error('Erro ao verificar senha: ' + error.message);
     }
@@ -101,11 +99,9 @@ class Utilizador {
       id: this.id,
       email: this.email,
       username: this.username,
-      nome: this.nome,
-      perfil: this.perfil,
-      is_admin: this.is_admin,
-      name: this.name,
-      is_admin: this.is_admin,
+  nome: this.nome,
+  perfil: this.perfil,
+  is_admin: this.is_admin,
       created_at: this.created_at,
       morada: this.morada,
       telefone: this.telefone

@@ -68,7 +68,7 @@ const getRelatorios = async (req, res) => {
                 JOIN encomendas e2 ON ep.encomenda_id = e2.id
                 GROUP BY ep.encomenda_id
             ) order_totals ON e.id = order_totals.encomenda_id
-            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
+            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             GROUP BY DATE(e.data_hora)
             ORDER BY data DESC
             LIMIT 10
@@ -83,7 +83,7 @@ const getRelatorios = async (req, res) => {
             FROM encomenda_pizzas ep
             JOIN pizza p ON ep.pizza_id = p.id
             JOIN encomendas e ON ep.encomenda_id = e.id
-            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
+            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             GROUP BY p.id, p.nome
             ORDER BY quantidade_vendida DESC
             LIMIT 10
@@ -95,7 +95,7 @@ const getRelatorios = async (req, res) => {
                 c.email,
                 MAX(c.nome) as nome,
                 COUNT(DISTINCT e.id) as total_encomendas,
-                COALESCE(SUM(order_totals.total_encomenda), 0) as total_gasto
+                COALESCE(SUM(ep.preco), 0) as total_gasto
             FROM clientes c
             JOIN encomendas e ON c.id = e.cliente_id
             LEFT JOIN (
@@ -106,7 +106,7 @@ const getRelatorios = async (req, res) => {
                 JOIN encomendas e2 ON ep.encomenda_id = e2.id
                 GROUP BY ep.encomenda_id
             ) order_totals ON e.id = order_totals.encomenda_id
-            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
+            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
             GROUP BY c.email
             ORDER BY total_encomendas DESC
             LIMIT 10
@@ -117,8 +117,8 @@ const getRelatorios = async (req, res) => {
             SELECT 
                 COUNT(DISTINCT e.id) as total_encomendas,
                 COUNT(DISTINCT c.email) as total_clientes,
-                COALESCE(SUM(order_totals.total_encomenda), 0) as receita_total,
-                COALESCE(AVG(order_totals.total_encomenda), 0) as ticket_medio
+                COALESCE(SUM(ep.preco), 0) as receita_total,
+                COALESCE(AVG(ep.preco), 0) as ticket_medio
             FROM encomendas e
             LEFT JOIN clientes c ON e.cliente_id = c.id
             LEFT JOIN (
@@ -129,7 +129,7 @@ const getRelatorios = async (req, res) => {
                 JOIN encomendas e2 ON ep.encomenda_id = e2.id
                 GROUP BY ep.encomenda_id
             ) order_totals ON e.id = order_totals.encomenda_id
-            WHERE e.data_hora >= current_timestamp - INTERVAL '30 days'
+            WHERE e.data_hora >= DATE_SUB(NOW(), INTERVAL 30 DAY)
         `;
         
         // Executar queries
@@ -142,9 +142,19 @@ const getRelatorios = async (req, res) => {
         const pizzas = pizzasResult.rows || pizzasResult[0] || [];
         const clientes = clientesResult.rows || clientesResult[0] || [];
         const estatisticas = estatisticasResult.rows || estatisticasResult[0] || [];
-        
+
+        // LOGS DETALHADOS PARA DEBUG
+        console.log('--- [DEBUG] Resultado encomendas ---');
+        console.log(encomendas);
+        console.log('--- [DEBUG] Resultado pizzas ---');
+        console.log(pizzas);
+        console.log('--- [DEBUG] Resultado clientes ---');
+        console.log(clientes);
+        console.log('--- [DEBUG] Resultado estatísticas ---');
+        console.log(estatisticas);
+
         console.log('✅ Relatórios gerados com sucesso');
-        
+
         res.json({
             success: true,
             relatorios: {
