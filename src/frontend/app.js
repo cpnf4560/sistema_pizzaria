@@ -117,34 +117,26 @@ async function initializeApp() {
         console.log('🧪 Carregando pizzas da API...');
         const response = await fetch(`${API_BASE}/api/pizzas`);
         console.log('📡 Status da resposta:', response.status);
-        
         if (response.ok) {
             const data = await response.json();
             console.log('📋 Dados recebidos:', data);
-            
-            if (data.success && data.data && data.data.length > 0) {
+            if (data.success && Array.isArray(data.data) && data.data.length > 0) {
                 pizzas = data.data;
                 console.log(`✅ ${pizzas.length} pizzas carregadas com sucesso!`);
                 return;
+            } else {
+                throw new Error('API retornou formato inesperado ou lista vazia');
             }
+        } else {
+            throw new Error('Falha no carregamento da API');
         }
-        
-        throw new Error('Falha no carregamento da API');
-        
     } catch (error) {
         console.error('❌ Erro na inicialização:', error);
-        console.log('🔄 Usando dados de fallback...');
-        
-        // Usar dados estáticos como fallback baseados na API real
-        pizzas = [
-            { id: 1, nome: "Pizza Java Supreme", descricao: "Com chouriço, fiambre, cogumelos e extra queijo", preco_pequena: 15.5, preco_media: 17.5, preco_grande: 19.5 },
-            { id: 2, nome: "Pizza Phyton Pepperoni", descricao: "Molho picante, queijo e pepperoni", preco_pequena: 15.0, preco_media: 17.0, preco_grande: 19.0 },
-            { id: 3, nome: "Pizza C++ Calzone", descricao: "Calzone fechada recheada com carne, queijo e cebola", preco_pequena: 15.8, preco_media: 17.8, preco_grande: 19.8 },
-            { id: 4, nome: "Pizza HTML Havaiana", descricao: "Fiambre, ananás e queijo", preco_pequena: 14.9, preco_media: 16.9, preco_grande: 18.9 },
-            { id: 5, nome: "Pizza CSS Carbonara", descricao: "Bacon, natas, cogumelos e parmesão", preco_pequena: 15.2, preco_media: 17.2, preco_grande: 19.2 },
-            { id: 6, nome: "Pizza Javascript Jalapeño", descricao: "Queijo, carne picada e jalapeños", preco_pequena: 15.3, preco_media: 17.3, preco_grande: 19.3 }
-        ];
-        console.log('✅ Dados de fallback carregados!');
+        pizzas = [];
+        const container = $("pizzas");
+        if (container) {
+            container.innerHTML = '<p style="text-align:center;color:#c00;">Erro ao carregar pizzas. Tente novamente mais tarde.</p>';
+        }
     }
 }
 
@@ -158,16 +150,12 @@ async function loadPizzas() {
         console.log('📋 Dados das pizzas:', pizzas);
     } catch (error) {
         console.error('❌ Erro ao carregar pizzas da API:', error);
-        console.log('🔄 Usando dados de fallback...');
-        // Fallback para dados estáticos em caso de erro
-        pizzas = [
-            { id: 1, nome: "Margherita", descricao: "Queijo mozzarella, tomate, manjericão fresco", preco_pequena: 5.5, preco_media: 7.0, preco_grande: 8.5 },
-            { id: 2, nome: "Pepperoni", descricao: "Queijo mozzarella, tomate, pepperoni", preco_pequena: 6.0, preco_media: 8.0, preco_grande: 9.5 },
-            { id: 3, nome: "Quatro Queijos", descricao: "Mozzarella, gorgonzola, parmesão, queijo flamengo", preco_pequena: 6.5, preco_media: 8.5, preco_grande: 10.0 },
-            { id: 4, nome: "Vegetariana", descricao: "Mozzarella, tomate, pimentos, cebola, milho, cogumelos", preco_pequena: 6.0, preco_media: 8.0, preco_grande: 9.5 },
-        ];
+        pizzas = [];
+        const container = $("pizzas");
+        if (container) {
+            container.innerHTML = '<p style="text-align:center;color:#c00;">Erro ao carregar pizzas. Tente novamente mais tarde.</p>';
+        }
     }
-    
     // Renderizar as pizzas após carregar
     console.log('🎨 Renderizando pizzas...');
     renderPizzas();
@@ -196,32 +184,42 @@ function renderPizzas() {
         console.log(`  Renderizando pizza ${index + 1}: ${pizza.nome}`);
         const pizzaDiv = document.createElement("div");
         pizzaDiv.className = "pizza-item";
-        
+
         // Adaptar para formato da API (preco_pequena, preco_media, preco_grande)
         const precos = [
-            parseFloat(pizza.preco_pequena || 0), 
-            parseFloat(pizza.preco_media || 0), 
+            parseFloat(pizza.preco_pequena || 0),
+            parseFloat(pizza.preco_media || 0),
             parseFloat(pizza.preco_grande || 0)
         ];
-        
+
         console.log(`  Preços da pizza ${pizza.nome}:`, precos);
-        
+
+        // Cria o HTML da pizza
         pizzaDiv.innerHTML = `
             <div>
                 <span class="pizza-nome">${pizza.nome}</span>
                 <div class="pizza-desc">${pizza.descricao}</div>
             </div>
-            <div class="pizza-precos">
-                ${precos.map((p, i) => 
-                    `<button class="pizza-btn" onclick="addPizza(${pizza.id},${i})">
-                        ${tamanhos[i]}<br><b>${p.toFixed(2)}€</b>
-                    </button>`
-                ).join("")}
-            </div>
+            <div class="pizza-precos"></div>
         `;
+
+        // Adiciona os botões de tamanho
+        const precosDiv = pizzaDiv.querySelector('.pizza-precos');
+        precos.forEach((p, i) => {
+            const btn = document.createElement('button');
+            btn.className = 'pizza-btn';
+            btn.setAttribute('data-pizza-id', pizza.id);
+            btn.setAttribute('data-tamanho-idx', i);
+            btn.innerHTML = `${tamanhos[i]}<br><b>${p.toFixed(2)}€</b>`;
+            btn.addEventListener('click', function() {
+                addPizza(pizza.id, i);
+            });
+            precosDiv.appendChild(btn);
+        });
+
         container.appendChild(pizzaDiv);
     });
-    
+
     console.log('✅ Renderização de pizzas completa!');
 }
 
