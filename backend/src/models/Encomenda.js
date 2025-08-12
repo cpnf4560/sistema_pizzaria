@@ -34,36 +34,29 @@ class Encomenda {
       const params = [];
 
       if (filters.cliente_id) {
-        conditions.push('e.cliente_id = ?');
+        conditions.push('e.cliente_id = $' + (params.length + 1));
         params.push(filters.cliente_id);
       }
-
       if (filters.status) {
-        conditions.push('e.status = ?');
+        conditions.push('e.status = $' + (params.length + 1));
         params.push(filters.status);
       }
-
       if (filters.data_inicio) {
-        conditions.push('DATE(e.data_hora) >= ?');
+        conditions.push('DATE(e.data_hora) >= $' + (params.length + 1));
         params.push(filters.data_inicio);
       }
-
       if (filters.data_fim) {
-        conditions.push('DATE(e.data_hora) <= ?');
+        conditions.push('DATE(e.data_hora) <= $' + (params.length + 1));
         params.push(filters.data_fim);
       }
-
       if (conditions.length > 0) {
         sql += ' WHERE ' + conditions.join(' AND ');
       }
-
-      sql += ' GROUP BY e.id ORDER BY e.data_hora DESC';
-
+      sql += ' GROUP BY e.id, c.nome, c.telefone, c.morada, e.data_hora, e.tipo_entrega, e.hora_entrega, e.taxa_entrega, e.observacoes, e.status, e.estado, e.cliente_id, e.utilizador_id, e.total ORDER BY e.data_hora DESC';
       console.log('📦 [Encomenda.getAll] SQL:', sql);
       console.log('📦 [Encomenda.getAll] Params:', params);
-      
       try {
-        const result = await pool.query(sql.replace(/\?/g, (v, i) => `$${i+1}`), params);
+        const result = await pool.query(sql, params);
         console.log('📦 [Encomenda.getAll] Rows encontradas:', result.rows.length);
         console.log('📦 [Encomenda.getAll] Primeira row:', result.rows[0] || 'NENHUMA');
         const encomendas = [];
@@ -114,7 +107,7 @@ class Encomenda {
         LEFT JOIN clientes c ON e.cliente_id = c.id
         LEFT JOIN encomenda_pizzas ep ON e.id = ep.encomenda_id
         WHERE e.id = $1
-        GROUP BY e.id
+        GROUP BY e.id, c.nome, c.telefone, c.morada, c.email, e.data_hora, e.tipo_entrega, e.hora_entrega, e.taxa_entrega, e.observacoes, e.status, e.estado, e.cliente_id, e.utilizador_id, e.total
       `, [id]);
       if (result.rows.length === 0) return null;
       const encomenda = new Encomenda({
@@ -148,19 +141,16 @@ class Encomenda {
   }
 
   static async create(encomendaData) {
-    const connection = await pool.getConnection();
-    
+    const client = await pool.connect();
     // LOG 1: Dados recebidos
     console.log('📝 === INÍCIO CRIAÇÃO ENCOMENDA ===');
     console.log('📊 Dados recebidos:', JSON.stringify(encomendaData, null, 2));
-    console.log('🛢️ Conectado à base de dados:', connection.config.database);
-    
     try {
-      await connection.beginTransaction();
+      await client.query('BEGIN');
       console.log('🔄 Transação iniciada');
 
       const { cliente_id, tipo_entrega, observacoes, metodo_pagamento, pizzas, hora_entrega } = encomendaData;
-      
+
       // LOG 2: Validações
       console.log('🔍 Validando dados...');
       console.log('👤 Cliente ID:', cliente_id);
@@ -169,18 +159,19 @@ class Encomenda {
       console.log('📝 Observações:', observacoes);
       console.log('🍕 Pizzas:', pizzas?.length || 0);
       console.log('⏰ Hora entrega:', hora_entrega);
-      
+
       // Verificar se cliente existe
-      const [clienteCheck] = await connection.execute(
-        'SELECT id, nome FROM clientes WHERE id = ?',
+      const clienteCheckResult = await client.query(
+        'SELECT id, nome FROM clientes WHERE id = $1',
         [cliente_id]
       );
+      const clienteCheck = clienteCheckResult.rows;
       console.log('👤 Cliente encontrado:', clienteCheck[0]?.nome || 'NÃO ENCONTRADO');
-      
+
       if (!clienteCheck[0]) {
         throw new Error(`Cliente com ID ${cliente_id} não existe na base de dados`);
       }
-      
+
       // Calcular total
       let total = 0;
       pizzas.forEach(pizza => {
@@ -198,41 +189,41 @@ class Encomenda {
       console.log('💰 Total calculado: €' + total.toFixed(2));
 
       // LOG 3: Query de inserção - sem metodo_pagamento
-      const insertQuery = 'INSERT INTO encomendas (cliente_id, data_hora, tipo_entrega, hora_entrega, taxa_entrega, observacoes, estado) VALUES (?, NOW(), ?, ?, ?, ?, ?)';
+      const insertQuery = 'INSERT INTO encomendas (cliente_id, data_hora, tipo_entrega, hora_entrega, taxa_entrega, observacoes, estado) VALUES ($1, NOW(), $2, $3, $4, $5, $6) RETURNING id';
       const insertParams = [cliente_id, tipo_entrega, hora_entrega, taxa_entrega, observacoes, 'pendente'];
-      
+
       console.log('📝 Query:', insertQuery);
       console.log('📝 Parâmetros:', insertParams);
 
       // Inserir encomenda
-      const [result] = await connection.execute(insertQuery, insertParams);
-      const encomendaId = result.insertId;
+      const result = await client.query(insertQuery, insertParams);
+      const encomendaId = result.rows[0].id;
       console.log('✅ Encomenda criada com ID:', encomendaId);
-      console.log('📊 Result object:', { insertId: result.insertId, affectedRows: result.affectedRows });
+      console.log('📊 Result object:', result.rows[0]);
 
       // LOG 4: Inserir pizzas - VERSÃO COM LOGS DETALHADOS
       console.log('🍕 === INSERINDO PIZZAS ===');
       for (let i = 0; i < pizzas.length; i++) {
         const pizza = pizzas[i];
-        const preco = parseFloat(pizza.preco || 7.00);   
+        const preco = parseFloat(pizza.preco || 7.00);
         console.log(`🍕 Pizza ${i+1}/${pizzas.length}:`, {
           pizza_id: pizza.pizza_id,
           nome: pizza.nome,
           tamanho: pizza.tamanho,
           preco: preco
         });
-        
+
         // Query adaptada para a estrutura real da tabela (sem quantidade, preco_unitario, subtotal)
         const quantidade = pizza.quantidade || 1;
-        const pizzaQuery = 'INSERT INTO encomenda_pizzas (encomenda_id, pizza_id, tamanho, preco) VALUES (?, ?, ?, ?)';
+        const pizzaQuery = 'INSERT INTO encomenda_pizzas (encomenda_id, pizza_id, tamanho, preco) VALUES ($1, $2, $3, $4)';
         const pizzaParams = [encomendaId, pizza.pizza_id, pizza.tamanho, preco];
-        
+
         console.log('📝 Pizza Query:', pizzaQuery);
         console.log('📝 Pizza Params:', pizzaParams);
-        
+
         try {
-          const [pizzaResult] = await connection.execute(pizzaQuery, pizzaParams);
-          console.log(`✅ Pizza ${i+1} inserida - ID: ${pizzaResult.insertId}`);
+          await client.query(pizzaQuery, pizzaParams);
+          console.log(`✅ Pizza ${i+1} inserida`);
         } catch (pizzaError) {
           console.error(`❌ Erro ao inserir pizza ${i+1}:`, pizzaError.message);
           throw pizzaError;
@@ -241,24 +232,24 @@ class Encomenda {
 
       // LOG 5: Commit
       console.log('💾 Fazendo commit da transação...');
-      await connection.commit();
+      await client.query('COMMIT');
       console.log('✅ Transação confirmada com sucesso');
-      
+
       // LOG 6: Verificação final
-      const [verificacao] = await connection.execute(
-        'SELECT COUNT(*) as total FROM encomendas WHERE id = ?',
+      const verificacao = await client.query(
+        'SELECT COUNT(*) as total FROM encomendas WHERE id = $1',
         [encomendaId]
       );
-      console.log('🔍 Verificação: encomenda existe na BD:', verificacao[0].total > 0);
-      
-      const [pizzasVerif] = await connection.execute(
-        'SELECT COUNT(*) as total FROM encomenda_pizzas WHERE encomenda_id = ?',
+      console.log('🔍 Verificação: encomenda existe na BD:', verificacao.rows[0].total > 0);
+
+      const pizzasVerif = await client.query(
+        'SELECT COUNT(*) as total FROM encomenda_pizzas WHERE encomenda_id = $1',
         [encomendaId]
       );
-      console.log('🔍 Verificação: pizzas inseridas:', pizzasVerif[0].total);
-      
+      console.log('🔍 Verificação: pizzas inseridas:', pizzasVerif.rows[0].total);
+
       console.log('🎉 === ENCOMENDA CRIADA COM SUCESSO ===');
-      
+
       return {
         id: encomendaId,
         cliente_id,
@@ -273,7 +264,7 @@ class Encomenda {
 
     } catch (error) {
       console.log('🔄 Fazendo rollback da transação...');
-      await connection.rollback();
+      await client.query('ROLLBACK');
       console.error('❌ === ERRO NA CRIAÇÃO DA ENCOMENDA ===');
       console.error('❌ Tipo:', error.constructor.name);
       console.error('❌ Mensagem:', error.message);
@@ -282,7 +273,7 @@ class Encomenda {
       throw new Error('Erro ao criar encomenda: ' + error.message);
     } finally {
       console.log('🔗 Libertando conexão...');
-      connection.release();
+      client.release();
       console.log('📝 === FIM CRIAÇÃO ENCOMENDA ===\n');
     }
   }
@@ -313,12 +304,12 @@ class Encomenda {
         FROM encomendas e 
         LEFT JOIN clientes c ON e.cliente_id = c.id
         LEFT JOIN encomenda_pizzas ep ON e.id = ep.encomenda_id
-        WHERE c.email = ?
-        GROUP BY e.id
+        WHERE c.email = $1
+        GROUP BY e.id, c.nome, c.telefone, c.morada, c.email, e.data_hora, e.tipo_entrega, e.hora_entrega, e.taxa_entrega, e.observacoes, e.status, e.estado, e.cliente_id, e.utilizador_id, e.total
         ORDER BY e.data_hora DESC
       `;
 
-      const result = await pool.query(sql.replace(/\?/g, (v, i) => `$${i+1}`), [email]);
+      const result = await pool.query(sql, [email]);
       const encomendas = [];
       for (const row of result.rows) {
         const pizzasSql = `
