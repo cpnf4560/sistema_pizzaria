@@ -59,8 +59,12 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
 
 // Servir frontend estático
+
 const frontendPath = path.join(__dirname, '../../src/frontend');
 app.use(express.static(frontendPath));
+// Servir /css como estático para produção
+const cssPath = path.join(__dirname, '../../src/frontend/css');
+app.use('/css', express.static(cssPath));
 
 // Health check endpoint
 app.get('/health', (req, res) => {
